@@ -1,0 +1,21 @@
+[Unit]
+Description=QYN 到点唤醒守卫 —— 链条断了就补跑一轮（不调模型就不花 token）
+Documentation=file:%h/qyn/agent/current/CENTRAL/dsh/README.md
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/qyn/agent
+Environment=DSH_HOME=%h/qyn/.dsh
+Environment=QYN_DSH_HOME=%h/qyn/.dsh
+Environment=QYN_REPO_ROOT=%h/qyn/agent/current
+Environment=QYN_DSH_CLI=%h/qyn/agent/cli/node_modules/.bin/dsh
+Environment=PATH=%h/qyn/agent/bin:%h/qyn/agent/node/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-%h/qyn/agent/agent.env
+# guard 模式：先问内核「下一个边界到了没」——
+#   没到 ⇒ 立刻退出（**不调模型，不花 token**）；
+#   到了 ⇒ 说明链条断了（关机、上一轮失败、快照被清），补跑一轮并把链条重新接上。
+ExecStart=/bin/bash %h/qyn/agent/current/CENTRAL/scripts/qyn-agent-tick.sh guard
+TimeoutStartSec=15min
+StandardOutput=append:%h/qyn/agent/logs/tick.log
+StandardError=append:%h/qyn/agent/logs/tick.log

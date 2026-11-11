@@ -1,0 +1,292 @@
+/* ════════════════════════════════════════════════════════════════════════
+   QYN 信息中心 · 主题：像素 TUI（PIXEL-TUI）
+   ────────────────────────────────────────────────────────────────────────
+   设计语言：8-bit / 终端 TUI
+     · 等宽字体 + 硬边框（0 圆角）+ 像素级硬投影（无模糊）
+     · 荧光屏配色：冷青 + 琥珀 + 酸绿；暗紫黑底
+     · 扫描线 / 像素网格 / 方块光标 / ASCII 角标
+     · **不用**金属渐变、不用 backdrop-filter（像素风要"平"）
+
+   ★★ 硬规则（用户 2026-11-07）：**主题不许改字号** ✗
+       —— 本文件里**没有** font-size / letter-spacing 声明 ✓
+       —— 字号只由 index.html 的基础样式决定 ⇒ 切主题时版式一格都不会跳 ✓
+
+   ★ 热插拔约定（见同目录 README.md）：
+     本文件是**覆盖式主题** —— 只覆盖颜色、字体、装饰；
+     布局、尺寸、类名、交互一律沿用 index.html 里的基础样式 ✓
+     ⇒ 新增主题 = 复制本文件改 token 与装饰，在 index.html 的
+       THEMES 表里加一行即可 ✓（不需要改结构 ✓）
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  color-scheme: dark;
+
+  /* ---- 底与面：暗紫黑 → 深靛，硬层次（无渐变 ✗）---- */
+  --bg: #08080f;
+  --panel: #0d0d18;
+  --card: #12121f;
+  --line: #2a2a44;
+  --fg: #d6f7ff;
+  --dim: #7fa6b8;
+  --faint: #4a5c6b;
+
+  /* ---- 语义色：像素荧光 ---- */
+  --ok: #3ddc84;
+  --warn: #ffb020;
+  --bad: #ff5c5c;
+  --accent: #ffd93d;
+
+  --lamp-off: #24243a;
+  --lamp-dark: #323250;
+
+  /* ---- 主题通用 token（保持名字一致 ✓ 其它主题也要有）---- */
+  --gold-700: #8a6d1f;
+  --gold-500: #ffd93d;
+  --gold-300: #ffe98a;
+  --gold-100: #fff7cc;
+  --hairline: #ffd93d;
+  --hairline-soft: #4a4a2a;
+
+  /* 金属渐变在像素主题里 = 纯色（去掉金属感 ✗） */
+  --metal: linear-gradient(0deg, #ffd93d, #ffd93d);
+
+  --radius: 0px;
+
+  --font-cn: "DejaVu Sans Mono", "Noto Sans Mono CJK SC", "Microsoft YaHei", monospace;
+  --font-latin: "DejaVu Sans Mono", "Consolas", "Courier New", monospace;
+}
+
+/* ── 底：暗紫黑 + 像素网格 ───────────────────────────────────────────── */
+body {
+  background-color: var(--bg) !important;
+  background-image:
+    linear-gradient(rgba(61, 220, 132, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(61, 220, 132, .045) 1px, transparent 1px),
+    radial-gradient(120% 90% at 50% 0%, #12122a 0%, #08080f 62%) !important;
+  background-size: 16px 16px, 16px 16px, auto !important;
+  background-attachment: fixed !important;
+  font-family: var(--font-cn) !important;
+  -webkit-font-smoothing: none;
+}
+
+/* 扫描线 + 角标（复用 html::before / ::after，像素主题里它们本来就是装饰 ✓） */
+html::before {
+  content: "" !important;
+  position: fixed; inset: 0 !important;
+  width: auto !important; height: auto !important;
+  right: 0 !important; top: 0 !important;
+  max-width: none !important; max-height: none !important;
+  background: repeating-linear-gradient(
+    180deg, rgba(0, 0, 0, .28) 0px, rgba(0, 0, 0, .28) 1px, transparent 1px, transparent 3px) !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+  pointer-events: none; z-index: 40;
+  animation: none !important;
+}
+html::after {
+  content: "" !important;
+  position: fixed; inset: 0 !important;
+  background:
+    linear-gradient(90deg, var(--ok) 0 2px, transparent 2px) 0 0 / 100% 18px no-repeat,
+    linear-gradient(270deg, var(--accent) 0 2px, transparent 2px) 100% 100% / 100% 18px no-repeat !important;
+  opacity: .55 !important;
+  pointer-events: none; z-index: 41;
+  mix-blend-mode: normal !important;
+  animation: none !important;
+}
+/* 左下角绿点：像素主题里改成"方块数据流" ✓ */
+body::after {
+  left: 0 !important; bottom: 0 !important;
+  width: 220px !important; height: 160px !important;
+  background-image:
+    radial-gradient(circle, var(--ok) 1px, transparent 1.4px) !important;
+  background-size: 8px 8px !important;
+  background-repeat: repeat !important;
+  opacity: .35 !important;
+  mix-blend-mode: normal !important;
+  -webkit-mask-image: linear-gradient(45deg, #000 0%, transparent 78%) !important;
+  mask-image: linear-gradient(45deg, #000 0%, transparent 78%) !important;
+  animation: none !important;
+}
+body::before { display: none !important; }
+
+/* ── 面板：硬边框 + 像素投影 + ASCII 标题 ───────────────────────────── */
+.panel {
+  border-radius: 0 !important;
+  border: 2px solid var(--line) !important;
+  background: var(--panel) !important;
+  backdrop-filter: none !important;
+  box-shadow: 3px 3px 0 #000 !important;
+}
+.panel:not(.collapsed) {
+  border-color: var(--accent) !important;
+  box-shadow: 3px 3px 0 #000, inset 0 0 0 1px rgba(255, 217, 61, .18) !important;
+}
+/* 标题带：去掉象牙白/金属，改成 TUI 标题行（反色块 ✓）*/
+.panel-head::before {
+  inset: -4px -6px !important;
+  border-radius: 0 !important;
+  border-right: none !important;
+  background: var(--accent) !important;
+  backdrop-filter: none !important;
+  opacity: .12;
+}
+.panel:not(.collapsed) .panel-head::before {
+  background: var(--accent) !important;
+  opacity: .22;
+}
+.panel-title {
+  color: var(--accent) !important;
+  font-family: var(--font-latin) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  text-shadow: 0 0 8px rgba(255, 217, 61, .55) !important;
+}
+.panel-note {
+  color: var(--dim) !important;
+  font-family: var(--font-latin) !important;
+}
+/* 展开栏标题前加一个方块光标 ✓ */
+.panel:not(.collapsed) .panel-title::before {
+  content: "▌";
+  color: var(--ok);
+  margin-right: 6px;
+  animation: qynCursor 1.1s steps(1) infinite;
+}
+@keyframes qynCursor { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+/* ── 卡片：平底色 + 硬边 + 左侧灯条变"像素条" ─────────────────────── */
+.card, .netcard, .tcard, .set-group, .chat {
+  border-radius: 0 !important;
+  background: var(--card) !important;
+  border: 1px solid var(--line) !important;
+  backdrop-filter: none !important;
+  box-shadow: 2px 2px 0 #000 !important;
+}
+.card::before, .netcard::before, .tcard::before {
+  background-image: none !important;
+  background: var(--line) !important;
+  height: 1px !important;
+  animation: none !important;
+}
+.card, .netcard, .tcard { border-left-width: 6px !important; }
+
+/* ── 文字：等宽 + 荧光 ─────────────────────────────────────────────── */
+#title .t-en, #clock .clk-t, #clock .clk-d,
+.card-head .mname, .panel-title, .panel-note, .k, .tday, .tlabel {
+  background-image: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+  animation: none !important;
+  font-family: var(--font-latin) !important;
+}
+.card-head .mname {
+  color: var(--fg) !important;
+  text-shadow: 0 0 7px rgba(214, 247, 255, .35) !important;
+}
+.k, .tlabel { color: var(--ok) !important; }
+.v { color: var(--fg) !important; font-family: var(--font-latin) !important; }
+.state { color: var(--dim) !important; font-family: var(--font-latin) !important; }
+#clock .clk-t { color: var(--accent) !important; text-shadow: 0 0 10px rgba(255, 217, 61, .5) !important; }
+#clock .clk-d { color: var(--dim) !important; }
+#title .t-en { color: var(--fg) !important; text-shadow: 0 0 10px rgba(214, 247, 255, .45) !important; }
+/* 手写标题：像素主题里换成**方框字**效果（保留字形，但去掉金属渐变 ✓）*/
+#title .t-cn {
+  background: var(--accent) !important;
+  filter: drop-shadow(2px 2px 0 #000) !important;
+  animation: none !important;
+}
+
+/* ── 进度条：像素块（无渐变 ✓ 用硬色块 + 内嵌网格）────────────────── */
+.bar {
+  border-radius: 0 !important;
+  background: #05050a !important;
+  border: 1px solid var(--line) !important;
+  height: 8px !important;
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 3px, transparent 3px 6px) !important;
+}
+.bar > i {
+  border-radius: 0 !important;
+  background: var(--ok) !important;
+  box-shadow: 0 0 6px rgba(61, 220, 132, .55) !important;
+}
+.bar.warn > i { background: var(--warn) !important; box-shadow: 0 0 6px rgba(255, 176, 32, .5) !important; }
+.bar.bad  > i { background: var(--bad) !important;  box-shadow: 0 0 6px rgba(255, 92, 92, .5) !important; }
+.bar.unknown > i { background: var(--faint) !important; box-shadow: none !important; }
+
+/* ── 主灯：方块 + 硬投影 + 亮起时闪烁 ─────────────────────────────── */
+.master {
+  border-radius: 0 !important;
+  border: 2px solid var(--line) !important;
+  background: #0a0a14 !important;
+  box-shadow: 3px 3px 0 #000 !important;
+  font-family: var(--font-latin) !important;
+}
+.master.warning.lit {
+  border-color: var(--bad) !important;
+  color: #ffd9d9 !important;
+  background: #2a0d0d !important;
+  box-shadow: 3px 3px 0 #000, 0 0 14px rgba(255, 92, 92, .6) !important;
+  animation: qynPixelBlink 1.2s steps(1) infinite !important;
+}
+.master.caution.lit {
+  border-color: var(--warn) !important;
+  color: #ffe9c2 !important;
+  background: #2a1d05 !important;
+  box-shadow: 3px 3px 0 #000, 0 0 14px rgba(255, 176, 32, .55) !important;
+  animation: qynPixelBlink 1.6s steps(1) infinite !important;
+}
+@keyframes qynPixelBlink { 0%, 60% { filter: brightness(1); } 61%, 100% { filter: brightness(.72); } }
+
+/* ── 底条 / 齿轮 / 设置 / 对话 ─────────────────────────────────────── */
+#dock { border-radius: 0 !important; border: 2px solid var(--line) !important; background: #0a0a14 !important; }
+#gear { border-radius: 0 !important; border: 2px solid var(--line) !important; background: #0a0a14 !important; color: var(--dim) !important; }
+#gear:hover { border-color: var(--accent) !important; color: var(--accent) !important; }
+#settings { background: var(--bg) !important; }
+.set-title { color: var(--accent) !important; font-family: var(--font-latin) !important; }
+.set-group h3 { color: var(--ok) !important; font-family: var(--font-latin) !important; }
+.set-row input, #chat-text { border-radius: 0 !important; background: #05050a !important; border: 1px solid var(--line) !important; color: var(--fg) !important; font-family: var(--font-latin) !important; }
+#chat { border-radius: 0 !important; border: 2px solid var(--line) !important; background: #0a0a14 !important; box-shadow: 0 -4px 0 #000 !important; }
+.chat-title { color: var(--ok) !important; font-family: var(--font-latin) !important; }
+.msg { border-radius: 0 !important; }
+
+/* ── 动效：像素主题不用"扫光" ✓ 只留方块光标与灯的步进闪烁 ─────────── */
+body.sweep #title .t-cn, body.sweep #title .t-en,
+body.sweep .panel:not(.collapsed) .panel-title,
+body.sweep .panel:not(.collapsed) .panel-note,
+body.sweep .panel:not(.collapsed) .k,
+body.sweep .panel:not(.collapsed) .card-head .mname,
+body.sweep .panel:not(.collapsed)::after,
+body.sweep .panel:not(.collapsed) .card::before,
+body.sweep .panel:not(.collapsed) .netcard::before,
+body.sweep .panel:not(.collapsed) .tcard::before {
+  animation: none !important;
+}
+/* 展开栏的标题做一次"打字机"高亮 ✓（step 阶梯，像素感 ✓）*/
+body.sweep .panel:not(.collapsed) .panel-title {
+  animation: qynPixelFlash .6s steps(3) 1 !important;
+}
+@keyframes qynPixelFlash {
+  0%   { color: var(--ok) !important; text-shadow: 0 0 14px var(--ok); }
+  100% { color: var(--accent) !important; }
+}
+
+/* ── 字号：等宽字体更宽 ⇒ 逐级下调，保证窄栏不折行 ✓（主题允许调字号 ✓）── */
+.panel-title { }
+.panel-note { }
+.card-head .mname { }
+.k, .tlabel { }
+.v { }
+.state, .extra { }
+/* TIME / AGENT 里那些长文本 */
+.tcard .tcourse { }
+.tcard.agent-slots .tcourse { }
+.agent-gist { }
+.agent-why { }
+.trow .twhen, .trow .tmeta { }
+.tsub { }
+#clock .clk-t { }
+#clock .clk-d { }
+#title .t-en { }
+

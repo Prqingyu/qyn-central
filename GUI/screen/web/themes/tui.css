@@ -1,0 +1,514 @@
+@import url("fonts/fusion-12px/Fusion-Pixel-12px-Monospaced-Simplified-Chinese.css");
+/* ════════════════════════════════════════════════════════════════════════
+   QYN 信息中心 · 主题：TUI（终端界面）
+   ────────────────────────────────────────────────────────────────────────
+   真·终端 TUI 语言（不是 8-bit 像素游戏 ✗）：
+     · ANSI 16 色配色：黑底 + 蓝/绿/黄/红，高对比不刺眼
+     · 制表符边框 ┌ ┐ └ ┘ ├ ┤ ─ │ 画框（用伪元素 content 画角 ✓）
+     · 反色选中（展开栏标题 = 蓝底黑字，像终端里被选中的行 ✓）
+     · 方块进度条 ▓▓▓░░░（repeating-linear-gradient 画方块 ✓）
+     · 闪烁方块光标 ▌ + 状态栏式底条 ✓
+     · 不用圆角、不用阴影、不用渐变、不用扫描线（那些是 CRT/像素 ✗）
+
+   ★★ 硬规则（用户 2026-11-07）：**主题不许改字号** ✗
+      —— 本文件里没有 font-size / letter-spacing 声明 ✓
+
+   ★ 热插拔约定（见同目录 README.md）：覆盖式主题，只改外观 ✓
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  color-scheme: dark;
+
+  /* ── ANSI 风配色 ── */
+  --bg: #0b0e14;        /* 终端黑（略偏蓝）*/
+  --panel: #0d121a;
+  --card: #10161f;
+  --line: #24303d;      /* 框线灰蓝 */
+  --fg: #cdd6e0;
+  --dim: #8593a2;
+  --faint: #566472;
+
+  --ok: #7ee787;        /* ANSI green  */
+  --warn: #f2cc60;      /* ANSI yellow */
+  --bad: #ff7b72;       /* ANSI red    */
+  --accent: #79c0ff;    /* ANSI blue   */
+
+  --lamp-off: #1b2430;
+  --lamp-dark: #27313d;
+
+  /* 通用 token：金色系全部替换成 ANSI 蓝 ✓ */
+  --gold-700: #2f6f9f;
+  --gold-500: #79c0ff;
+  --gold-300: #a5d6ff;
+  --gold-100: #d6ecff;
+  --hairline: #79c0ff;
+  --hairline-soft: #24303d;
+  --metal: linear-gradient(0deg, #79c0ff, #79c0ff);
+  --radius: 0px;
+
+  /* ★ 2026-11-07（用户）：中文字体换成**像素字体** ✓ Fusion Pixel 12px（OFL ✓ 本地文件 ✓ 零外链 ✓）*/
+  --font-cn: "Fusion Pixel 12px Monospaced Simplified Chinese", "DejaVu Sans Mono", "Noto Sans Mono CJK SC", monospace;
+  --font-latin: "DejaVu Sans Mono", "Consolas", "Courier New", monospace;
+}
+
+/* ── 底：纯终端黑，无网格/无光晕/无扫描线 ✓ ─────────────────────────── */
+body {
+  background: var(--bg) !important;
+  background-image: none !important;
+  font-family: var(--font-cn) !important;
+}
+html::before, html::after, body::before, body::after { display: none !important; }
+
+/* ── 面板：制表符边框 ─────────────────────────────────────────────────
+   外框 1px 实线 + 四角用伪元素画 ┌ ┐ └ ┘ ✓（`.panel::before` 放四角）*/
+.panel {
+  position: relative;
+  border-radius: 0 !important;
+  border: 1px solid var(--line) !important;
+  background: var(--panel) !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+.panel::before {
+  content: "┌" !important;
+  position: absolute !important; inset: -1px -1px auto auto !important;
+  width: auto !important; height: auto !important;
+  left: -1px !important; top: -1px !important;
+  padding: 0 2px;
+  color: var(--line);
+  background: transparent !important;
+  font: inherit; line-height: 1;
+  pointer-events: none;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  z-index: 2;
+}
+/* 右上角：用 ::after 画 ┐（原来那条扫光在 TUI 里不要 ✓）*/
+.panel::after {
+  content: "┐" !important;
+  position: absolute !important;
+  right: -1px !important; top: -1px !important;
+  left: auto !important; bottom: auto !important;
+  width: auto !important; height: auto !important;
+  padding: 0 2px;
+  color: var(--line);
+  background: transparent !important;
+  font: inherit; line-height: 1;
+  box-shadow: none !important;
+  pointer-events: none;
+  opacity: 1 !important;
+  z-index: 2;
+}
+.panel:not(.collapsed) { border-color: var(--accent) !important; }
+.panel:not(.collapsed)::before, .panel:not(.collapsed)::after { color: var(--accent); }
+
+/* 标题带：取消金底块 ✓ 改成 `├ 标题 ──` 的 TUI 标题行 */
+.panel-head::before { display: none !important; }
+.panel-title {
+  background-image: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+  color: var(--accent) !important;
+  font-family: var(--font-latin) !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+  animation: none !important;
+}
+.panel-title::before { content: "┤ "; color: var(--line); }
+.panel-title::after  { content: " ├"; color: var(--line); }
+.panel-note { color: var(--faint) !important; animation: none !important; }
+/* 展开栏：标题**反色**（蓝底黑字，像终端里被选中的行 ✓）+ 闪烁光标 */
+.panel:not(.collapsed) .panel-title {
+  background: var(--accent) !important;
+  -webkit-text-fill-color: var(--bg) !important;
+  color: var(--bg) !important;
+  padding: 0 4px;
+}
+.panel:not(.collapsed) .panel-title::before { content: "▌ "; color: var(--ok); }
+.panel:not(.collapsed) .panel-title::after  { content: ""; }
+@keyframes qynTuiCursor { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .25; } }
+.panel:not(.collapsed) .panel-title::before { animation: qynTuiCursor 1.1s steps(1) infinite; }
+
+/* ── 卡片：细框 + 左灯条（▌块）──────────────────────────────────────── */
+.card, .netcard, .tcard, .set-group, .chat {
+  border-radius: 0 !important;
+  border: 1px solid var(--line) !important;
+  background: var(--card) !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+.card::before, .netcard::before, .tcard::before { display: none !important; }
+.card, .netcard, .tcard { border-left-width: 5px !important; }
+.card.focus, .netcard.focus, .tcard.focus { border-color: var(--accent) !important; box-shadow: none !important; }
+
+/* ── 文字：终端配色 ────────────────────────────────────────────────── */
+#title .t-en, #clock .clk-t, #clock .clk-d,
+.card-head .mname, .k, .tday, .tlabel {
+  background-image: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+  animation: none !important;
+  text-shadow: none !important;
+}
+#title .t-en { color: var(--fg) !important; font-family: var(--font-latin) !important; }
+#title .t-cn { background: var(--fg) !important; filter: none !important; animation: none !important; }
+#clock .clk-t { color: var(--accent) !important; font-family: var(--font-latin) !important; }
+#clock .clk-d { color: var(--dim) !important; font-family: var(--font-latin) !important; }
+.card-head .mname { color: var(--fg) !important; font-family: var(--font-latin) !important; }
+.k, .tlabel { color: var(--accent) !important; font-family: var(--font-latin) !important; }
+.v { color: var(--fg) !important; font-family: var(--font-latin) !important; }
+.state, .extra, .tsub { color: var(--dim) !important; }
+.offline { color: var(--faint) !important; }
+
+/* ── 进度条：方块 ▓▓▓░░░ ──────────────────────────────────────────── */
+.bar {
+  background: #070a0f !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 2px, transparent 2px 4px) !important;
+}
+.bar > i {
+  border-radius: 0 !important;
+  background: var(--ok) !important;
+  background-image: repeating-linear-gradient(90deg, var(--ok) 0 3px, transparent 3px 5px) !important;
+  box-shadow: none !important;
+}
+.bar.warn > i { background: var(--warn) !important; background-image: repeating-linear-gradient(90deg, var(--warn) 0 3px, transparent 3px 5px) !important; }
+.bar.bad  > i { background: var(--bad) !important;  background-image: repeating-linear-gradient(90deg, var(--bad) 0 3px, transparent 3px 5px) !important; }
+.bar.unknown > i { background: var(--faint) !important; background-image: none !important; }
+
+/* ── 主灯：`[ MASTER WARNING ]` 括号风格 ───────────────────────────── */
+.master {
+  border-radius: 0 !important;
+  border: 1px solid var(--line) !important;
+  background: var(--panel) !important;
+  box-shadow: none !important;
+  font-family: var(--font-latin) !important;
+  animation: none !important;
+}
+.master::before { content: "[ "; color: var(--faint); }
+.master::after  { content: " ]"; color: var(--faint); }
+.master.warning.lit {
+  color: var(--bad) !important; border-color: var(--bad) !important; background: #1d0f0f !important;
+  animation: qynTuiBlink 1.2s steps(1) infinite !important;
+}
+.master.caution.lit {
+  color: var(--warn) !important; border-color: var(--warn) !important; background: #1d190c !important;
+  animation: qynTuiBlink 1.8s steps(1) infinite !important;
+}
+.master.warning.lit::before, .master.warning.lit::after { color: var(--bad); }
+.master.caution.lit::before, .master.caution.lit::after { color: var(--warn); }
+@keyframes qynTuiBlink { 0%, 62% { filter: brightness(1); } 63%, 100% { filter: brightness(.7); } }
+
+/* ── 底条：状态栏风格 ──────────────────────────────────────────────── */
+#dock {
+  border-radius: 0 !important;
+  border: 1px solid var(--line) !important;
+  background: var(--panel) !important;
+}
+.dock-hint { color: var(--dim) !important; }
+#gear {
+  border-radius: 0 !important; border: 1px solid var(--line) !important;
+  background: var(--panel) !important; color: var(--dim) !important;
+}
+#gear:hover { border-color: var(--accent) !important; color: var(--accent) !important; }
+#settings { background: var(--bg) !important; }
+.set-title { color: var(--accent) !important; font-family: var(--font-latin) !important; }
+.set-group h3 { color: var(--accent) !important; font-family: var(--font-latin) !important; }
+.set-group h3::before { content: "## "; color: var(--faint); }
+.set-row input, #chat-text {
+  border-radius: 0 !important; background: #070a0f !important;
+  border: 1px solid var(--line) !important; color: var(--fg) !important;
+  font-family: var(--font-latin) !important;
+}
+#chat { border-radius: 0 !important; border: 1px solid var(--line) !important; background: var(--panel) !important; }
+.chat-title { color: var(--accent) !important; font-family: var(--font-latin) !important; }
+.msg { border-radius: 0 !important; }
+
+/* ── 动效：TUI 只有光标闪烁与灯的步进闪烁 ✓（不要扫光 ✗）────────────── */
+body.sweep #title .t-cn, body.sweep #title .t-en,
+body.sweep .panel:not(.collapsed) .panel-title,
+body.sweep .panel:not(.collapsed) .panel-note,
+body.sweep .panel:not(.collapsed) .k,
+body.sweep .panel:not(.collapsed) .card-head .mname,
+body.sweep .panel:not(.collapsed)::after,
+body.sweep .panel:not(.collapsed) .card::before,
+body.sweep .panel:not(.collapsed) .netcard::before,
+body.sweep .panel:not(.collapsed) .tcard::before {
+  animation: none !important;
+}
+/* 展开时：标题行反色闪一下（step ✓ 终端感 ✓）*/
+body.sweep .panel:not(.collapsed) .panel-title {
+  animation: qynTuiFlash .5s steps(2) 1 !important;
+}
+@keyframes qynTuiFlash {
+  0%   { background: var(--ok) !important; -webkit-text-fill-color: var(--bg) !important; }
+  100% { background: var(--accent) !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel:not(.collapsed) .panel-title::before,
+  .master.warning.lit, .master.caution.lit,
+  body.sweep .panel:not(.collapsed) .panel-title { animation: none !important; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   增强：**像素感 + 霓虹感**（用户 2026-11-07）
+     · 像素感：2px 粗边框、硬投影（无模糊）、8px 像素网格、扫描线、方块进度条
+     · 霓虹感：各元素同色辉光（text-shadow / box-shadow），像霓虹灯管
+     · 仍然**不改字号** ✓（硬规则）
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── 底：像素网格 + 细扫描线 ─────────────────────────────────────────── */
+body {
+  background-color: var(--bg) !important;
+  background-image:
+    linear-gradient(rgba(121, 192, 255, .055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(121, 192, 255, .055) 1px, transparent 1px),
+    radial-gradient(120% 90% at 50% 0%, #101a26 0%, #07090e 65%) !important;
+  background-size: 8px 8px, 8px 8px, auto !important;
+  background-attachment: fixed !important;
+}
+/* 扫描线（极淡 ✓ 只做质感）*/
+html::before {
+  content: "" !important; display: block !important;
+  position: fixed !important; inset: 0 !important;
+  width: auto !important; height: auto !important;
+  left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important;
+  background: repeating-linear-gradient(180deg, rgba(0, 0, 0, .22) 0 1px, transparent 1px 3px) !important;
+  mix-blend-mode: normal !important; opacity: 1 !important;
+  pointer-events: none; z-index: 40;
+}
+html::after { display: none !important; }
+/* 左下角：像素点阵（霓虹绿 ✓）*/
+body::after {
+  content: "" !important; display: block !important;
+  position: fixed !important; left: 0 !important; bottom: 0 !important;
+  width: 260px !important; height: 190px !important;
+  background-image: radial-gradient(circle, var(--ok) 1.2px, transparent 1.7px) !important;
+  background-size: 8px 8px !important;
+  background-repeat: repeat !important;
+  opacity: .30 !important;
+  mix-blend-mode: screen !important;
+  -webkit-mask-image: linear-gradient(45deg, #000 0%, transparent 80%) !important;
+  mask-image: linear-gradient(45deg, #000 0%, transparent 80%) !important;
+  pointer-events: none; z-index: 1;
+}
+body::before { display: none !important; }
+
+/* ── 面板：2px 粗框 + 硬投影 + 霓虹外晕 ─────────────────────────────── */
+.panel {
+  border-width: 2px !important;
+  border-color: #2b3a4a !important;
+  box-shadow: 3px 3px 0 #000, 0 0 10px rgba(121, 192, 255, .10) !important;
+}
+.panel:not(.collapsed) {
+  border-color: var(--accent) !important;
+  box-shadow: 3px 3px 0 #000, 0 0 14px rgba(121, 192, 255, .38),
+              inset 0 0 10px rgba(121, 192, 255, .10) !important;
+}
+.panel::before, .panel::after { text-shadow: 0 0 6px var(--accent); }
+
+/* ── 标题：霓虹字 ───────────────────────────────────────────────────── */
+.panel-title {
+  color: var(--accent) !important;
+  text-shadow: 0 0 6px rgba(121, 192, 255, .85), 0 0 14px rgba(121, 192, 255, .45) !important;
+}
+.panel:not(.collapsed) .panel-title {
+  background: var(--accent) !important;
+  -webkit-text-fill-color: var(--bg) !important;
+  box-shadow: 0 0 12px rgba(121, 192, 255, .55) !important;
+  text-shadow: none !important;
+}
+.panel:not(.collapsed) .panel-title::before {
+  color: var(--ok) !important;
+  text-shadow: 0 0 8px var(--ok) !important;
+}
+.panel-note { color: var(--faint) !important; }
+
+/* ── 卡片：硬投影 + 左灯条霓虹 ─────────────────────────────────────── */
+.card, .netcard, .tcard, .set-group {
+  border-width: 1px !important;
+  border-color: #263442 !important;
+  box-shadow: 2px 2px 0 #000 !important;
+}
+.card.ok, .netcard.ok { box-shadow: 2px 2px 0 #000, 0 0 8px rgba(126, 231, 135, .18) !important; }
+.card.warn, .netcard.warn { box-shadow: 2px 2px 0 #000, 0 0 8px rgba(242, 204, 96, .18) !important; }
+.card.bad, .netcard.bad { box-shadow: 2px 2px 0 #000, 0 0 10px rgba(255, 123, 114, .26) !important; }
+.card-head .mname { text-shadow: 0 0 6px rgba(205, 214, 224, .45) !important; }
+.v { text-shadow: 0 0 5px rgba(205, 214, 224, .30) !important; }
+.k, .tlabel { text-shadow: 0 0 5px rgba(121, 192, 255, .55) !important; }
+
+/* ── 时钟：霓虹蓝（像霓虹灯管 ✓）───────────────────────────────────── */
+#clock .clk-t {
+  text-shadow: 0 0 8px rgba(121, 192, 255, .9), 0 0 20px rgba(121, 192, 255, .55) !important;
+}
+#title .t-en { text-shadow: 0 0 8px rgba(205, 214, 224, .55) !important; }
+
+/* ── 进度条：粗方块 + 同色霓虹 ─────────────────────────────────────── */
+.bar { border-width: 1px !important; height: 9px !important; }
+.bar > i {
+  background-image: repeating-linear-gradient(90deg, var(--ok) 0 4px, transparent 4px 6px) !important;
+  box-shadow: 0 0 8px rgba(126, 231, 135, .75) !important;
+}
+.bar.warn > i {
+  background-image: repeating-linear-gradient(90deg, var(--warn) 0 4px, transparent 4px 6px) !important;
+  box-shadow: 0 0 8px rgba(242, 204, 96, .7) !important;
+}
+.bar.bad > i {
+  background-image: repeating-linear-gradient(90deg, var(--bad) 0 4px, transparent 4px 6px) !important;
+  box-shadow: 0 0 8px rgba(255, 123, 114, .75) !important;
+}
+
+/* ── 主灯：霓虹灯管（亮 = 外发光 + 步进闪烁 ✓）────────────────────── */
+.master {
+  border-width: 2px !important;
+  border-color: #2b3a4a !important;
+  box-shadow: 2px 2px 0 #000 !important;
+  text-shadow: none !important;
+}
+.master.warning.lit {
+  border-color: var(--bad) !important; color: var(--bad) !important;
+  box-shadow: 2px 2px 0 #000, 0 0 16px rgba(255, 123, 114, .75),
+              inset 0 0 10px rgba(255, 123, 114, .35) !important;
+  text-shadow: 0 0 8px rgba(255, 123, 114, .9) !important;
+}
+.master.caution.lit {
+  border-color: var(--warn) !important; color: var(--warn) !important;
+  box-shadow: 2px 2px 0 #000, 0 0 16px rgba(242, 204, 96, .7),
+              inset 0 0 10px rgba(242, 204, 96, .32) !important;
+  text-shadow: 0 0 8px rgba(242, 204, 96, .85) !important;
+}
+
+/* ── 底条 / 齿轮：硬投影 + 霓虹边 ──────────────────────────────────── */
+#dock { box-shadow: 2px 2px 0 #000, 0 0 8px rgba(121, 192, 255, .12) !important; }
+#gear { box-shadow: 2px 2px 0 #000 !important; }
+#gear:hover { box-shadow: 2px 2px 0 #000, 0 0 12px rgba(121, 192, 255, .45) !important; }
+#settings { background: var(--bg) !important; }
+.set-title { text-shadow: 0 0 10px rgba(121, 192, 255, .7) !important; }
+.set-group { box-shadow: 2px 2px 0 #000 !important; }
+#chat { box-shadow: 2px 2px 0 #000, 0 0 12px rgba(121, 192, 255, .18) !important; }
+
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   老式 CRT（用户 2026-11-07 要求**加强** —— 之前太弱看不出来 ✗）
+     · 行抖动：常态 ±0.8px，每 6.5s 一次 **2.2px 跳行**（同步不良 ✓）
+     · 亮度闪烁：0.92 ↔ 1.0，3.1s 一轮（能明显感觉到 ✓）
+     · 滚动亮带：16vh、4.5s 从下滚到上（更明显 ✓）
+     · 滚动暗带：40vh 的半透明暗带、11s 一轮（CRT 的行扫描亮暗不均 ✓）
+     · 文字色差：红/蓝 ±1.2px（会聚误差，明显但不糊 ✓）
+     · 隔行：2px 亮 / 2px 暗（interlace ✓）
+     · 四角暗角 + 屏幕轻微圆角（老显像管 ✓）
+   ★ 不改字号 ✓
+   ════════════════════════════════════════════════════════════════════════ */
+@keyframes qynCrtJitter {
+  0%   { transform: translateY(0); }
+  9%   { transform: translateY(0.8px); }
+  18%  { transform: translateY(0); }
+  27%  { transform: translateY(-0.8px); }
+  36%  { transform: translateY(0); }
+  45%  { transform: translateY(0.6px); }
+  54%  { transform: translateY(0); }
+  63%  { transform: translateY(-0.6px); }
+  72%  { transform: translateY(0); }
+  81%  { transform: translateY(0.5px); }
+  90%  { transform: translateY(0); }
+  100% { transform: translateY(0); }
+}
+/* 同步不良：每 6.5s 一次横向错位 + 竖向跳行（老电视"抖一下" ✓）*/
+@keyframes qynCrtSyncGlitch {
+  0%, 92%   { transform: translate(0, 0) skewX(0); }
+  93%       { transform: translate(2.5px, 2.2px) skewX(.35deg); }
+  94.5%     { transform: translate(-2px, -1.6px) skewX(-.3deg); }
+  96%       { transform: translate(1px, 1px) skewX(.2deg); }
+  100%      { transform: translate(0, 0) skewX(0); }
+}
+@keyframes qynCrtFlicker {
+  0%, 100% { opacity: 1; }
+  41%      { opacity: .97; }
+  42%      { opacity: .92; }
+  43%      { opacity: .99; }
+  67%      { opacity: .95; }
+  68%      { opacity: 1; }
+}
+body {
+  animation: qynCrtJitter .2s steps(1) infinite,
+             qynCrtSyncGlitch 6.5s steps(1) infinite,
+             qynCrtFlicker 3.1s steps(1) infinite !important;
+  will-change: transform, opacity;
+}
+/* 滚动亮带 */
+@keyframes qynCrtRoll {
+  0%   { transform: translateY(-18vh); opacity: 0; }
+  6%   { opacity: .85; }
+  94%  { opacity: .85; }
+  100% { transform: translateY(112vh); opacity: 0; }
+}
+html::after {
+  content: "" !important; display: block !important;
+  position: fixed !important; left: 0 !important; right: 0 !important;
+  top: 0 !important; bottom: auto !important;
+  width: auto !important; height: 16vh !important;
+  background: linear-gradient(180deg, transparent 0%, rgba(190, 230, 255, .10) 42%,
+              rgba(225, 245, 255, .30) 50%, rgba(190, 230, 255, .10) 58%, transparent 100%) !important;
+  mix-blend-mode: screen !important;
+  pointer-events: none; z-index: 43;
+  animation: qynCrtRoll 4.5s linear infinite !important;
+}
+/* 滚动暗带（行扫描亮暗不均 ✓）*/
+@keyframes qynCrtDarkRoll {
+  0%   { transform: translateY(-45vh); opacity: .0; }
+  12%  { opacity: .55; }
+  88%  { opacity: .55; }
+  100% { transform: translateY(115vh); opacity: 0; }
+}
+/* 隔行 + 暗带 + 暗角：都挂在 body::before 的多层背景上 ✓ */
+body::before {
+  content: "" !important; display: block !important;
+  position: fixed !important; inset: 0 !important;
+  width: auto !important; height: auto !important;
+  background:
+    repeating-linear-gradient(180deg,
+      rgba(0, 0, 0, .42) 0 1px, transparent 1px 2px,
+      rgba(255, 255, 255, .035) 2px 3px, transparent 3px 4px) !important;
+  pointer-events: none; z-index: 39;
+  mix-blend-mode: normal !important;
+}
+body::after {
+  content: "" !important; display: block !important;
+  position: fixed !important; left: 0 !important; right: 0 !important;
+  top: 0 !important; bottom: auto !important;
+  width: auto !important; height: 45vh !important;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .38) 50%, transparent) !important;
+  pointer-events: none; z-index: 38;
+  mix-blend-mode: multiply !important;
+  animation: qynCrtDarkRoll 11s linear infinite !important;
+}
+/* 文字色差（会聚误差 ✓）*/
+#title .t-en, #clock .clk-t, .panel-title, .v, .card-head .mname, .k {
+  text-shadow:
+    -1.2px 0 rgba(255, 70, 110, .55),
+     1.2px 0 rgba(80, 175, 255, .55) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  body, html::after, body::after { animation: none !important; }
+  body::after { opacity: 0 !important; }
+}
+
+/* 重排按钮：终端风格（0 圆角 + 霓虹边 ✓ 2026-11-09 移到对话条右边）*/
+#dock-replan {
+  border-radius: 0 !important;
+  border: 1px solid var(--accent) !important;
+  background: #070a0f !important;
+  color: var(--accent) !important;
+  font-family: var(--font-latin) !important;
+  box-shadow: 2px 2px 0 #000, 0 0 10px rgba(121, 192, 255, .30) !important;
+  text-shadow: 0 0 6px rgba(121, 192, 255, .6) !important;
+}
+#dock-replan::before { content: "> " !important; color: var(--ok) !important; }
+#dock-replan:hover { background: #0d1420 !important; box-shadow: 2px 2px 0 #000, 0 0 16px rgba(121, 192, 255, .55) !important; }
+#dock-replan.topdone { border-color: var(--warn) !important; color: var(--warn) !important; text-shadow: 0 0 6px rgba(242,204,96,.7) !important; box-shadow: 2px 2px 0 #000, 0 0 14px rgba(242,204,96,.5) !important; }
+#dock-replan.busy { color: var(--dim) !important; border-color: var(--line) !important; box-shadow: 2px 2px 0 #000 !important; }
+#dock-replan.done { border-color: var(--ok) !important; color: var(--ok) !important; }

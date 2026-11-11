@@ -1,0 +1,19 @@
+[Unit]
+Description=QYN 状态墙 · kiosk 全屏显示（Firefox --kiosk）
+Documentation=file:///home/user/qyn/current/screen/README.md
+# 静态服务先起来，否则开机时会先闪一下"无法访问"
+After=qyn-screen.service graphical-session.target
+Wants=qyn-screen.service
+
+[Service]
+Type=simple
+# 留一点时间给 qyn-screen 和状态墙
+ExecStartPre=/bin/sleep 6
+ExecStart=/usr/bin/firefox --kiosk http://127.0.0.1:8090/
+# ★ 24×7 的墙不能因为浏览器崩了就黑着：退出就自动拉起来
+#   （原来只有 autostart 的 .desktop，它只在登录时跑一次，崩了就没了 —— 实测踩过）
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

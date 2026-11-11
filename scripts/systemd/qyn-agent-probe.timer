@@ -1,0 +1,11 @@
+[Unit]
+Description=QYN Agent 系统探针 —— 每 1 分钟（结果进大屏 SERVICE 的 svc-agent 节点）
+
+[Timer]
+OnBootSec=90s
+OnUnitActiveSec=1min
+AccuracySec=10s
+Unit=qyn-agent-probe.service
+
+[Install]
+WantedBy=timers.target

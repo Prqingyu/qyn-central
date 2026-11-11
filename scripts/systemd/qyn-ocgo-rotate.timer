@@ -1,0 +1,14 @@
+[Unit]
+Description=QYN 账号轮切 —— 每天本地 00:05 检查一次（到点才真的换，平时是空操作）
+Documentation=file:%h/qyn/agent/current/CENTRAL/scripts/qyn-ocgo-rotate.sh
+
+[Timer]
+# ★ 2026-11-05：从 04:10 改到 **00:05** —— 轮切判据已统一成**本地日期**，
+#   墙（Windows 推送）在本地零点就按新账号显示了，中控必须紧跟着换
+#   （原来差 4 小时 ⇒ 墙显示下一个账号、Agent 还用上一个 ⇒ OC 卡变红 ✗）。
+OnCalendar=*-*-* 00:05:00
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

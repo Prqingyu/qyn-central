@@ -1,0 +1,18 @@
+[Unit]
+Description=Proxmox VE → 信息中心状态墙（采一帧就退，由 timer 每 15 秒拉起）
+Documentation=file:/root/qyn/PROXMOX-COLLECT.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# ★ 采集器要 root（pvesh 的 root@pam 权限）✓
+ExecStart=/usr/bin/python3 /root/qyn/proxmox-collect.py --once --url http://127.0.0.1:8080/api/telemetry
+# 单次最多跑 30 秒，卡住就杀掉（下一轮 timer 还会拉起来 ✓）
+TimeoutStartSec=30
+# ★ 2026-11-10（用户）：5 秒一帧、每帧一行 ⇒ 一天 ~1.7 万行，把 journal 塞满 ✗
+#   采集器默认已经静默（只报错 ✓），这里再把 stdout 也丢掉 —— 双保险 ✓
+StandardOutput=null
+StandardError=journal
+SyslogIdentifier=qyn-pve
+Nice=5

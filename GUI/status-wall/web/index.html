@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>信息中心 · 状态墙</title>
+<!--
+  状态墙展示页。
+  ★ 零 CDN：局域网没有外网，任何外部字体/脚本/CSS 都会让页面卡在加载态。
+    所有样式与逻辑都内联在本文件里，不引用任何外部资源。
+
+  ★ "离线是常态"：节点按需开机，不在线时显示最后已知值 + 多久之前的数据，
+    而不是空白。只有"本该在线却离线"（见 EXPECTED_ONLINE）才标红。
+-->
+<style>
+  :root {
+    --bg: #0f1216; --card: #171c22; --line: #242c35;
+    --fg: #e6edf3; --dim: #8b98a5; --faint: #5a6673;
+    --ok: #3fb950; --warn: #d29922; --bad: #f85149; --accent: #58a6ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+    padding: 22px 26px; display: flex; flex-direction: column; gap: 18px;
+  }
+  header { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: 1px; }
+  .sub { color: var(--dim); font-size: 15px; }
+  .spacer { flex: 1; }
+  #clock { font-size: 30px; font-variant-numeric: tabular-nums; }
+  #conn { font-size: 14px; color: var(--dim); }
+  #conn.live { color: var(--ok); }
+  #conn.down { color: var(--bad); }
+
+  main { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(370px, 1fr)); }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;
+    border-left: 4px solid var(--faint);
+  }
+  .card.ok   { border-left-color: var(--ok); }
+  .card.warn { border-left-color: var(--warn); }
+  .card.bad  { border-left-color: var(--bad); }
+
+  .card-head { display: flex; align-items: baseline; gap: 10px; }
+  .node { font-size: 21px; font-weight: 600; }
+  .plat { font-size: 13px; color: var(--faint); }
+  .age { margin-left: auto; font-size: 14px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .card.bad .age { color: var(--bad); }
+
+  .metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; }
+  .m { display: flex; flex-direction: column; gap: 4px; }
+  .m .k { font-size: 12px; color: var(--faint); letter-spacing: .5px; }
+  .m .v { font-size: 19px; font-variant-numeric: tabular-nums; }
+  .m .v .u { font-size: 12px; color: var(--dim); margin-left: 3px; }
+
+  .bar { height: 6px; border-radius: 3px; background: #0b0e12; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--accent); width: 0; }
+  .bar.warn > i { background: var(--warn); }
+  .bar.bad  > i { background: var(--bad); }
+
+  .missing { color: var(--dim); font-size: 15px; }
+  .empty { color: var(--faint); font-size: 17px; }
+  footer { color: var(--faint); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>信息中心 · 状态墙</h1>
+  <span class="sub">最后已知状态（离线保留最后值，不显示空白）</span>
+  <span class="spacer"></span>
+  <span id="conn">连接中…</span>
+  <span id="clock">--:--:--</span>
+</header>
+
+<main id="grid"></main>
+<footer id="foot"></footer>
+
+<script>
+// 本该 7×24 在线的节点：它们离线才算"故障"，会标红。
+// 其余（按需开机的开发机、存储站）离线是常态，只标灰。
+const EXPECTED_ONLINE = new Set(["central", "mc", "bmc"]);
+const STALE_WARN_S = 45;      // 超过这个秒数视为数据陈旧
+const STALE_BAD_S  = 300;     // 超过这个秒数视为离线
+
+const nodes = new Map();
+
+function fmt(v, unit, digits) {
+  if (v === null || v === undefined) return '<span class="missing">—</span>';
+  const n = Number(v);
+  if (!isFinite(n)) return '<span class="missing">—</span>';
+  return n.toFixed(digits === undefined ? 1 : digits) + `<span class="u">${unit || ""}</span>`;
+}
+function bar(pct) {
+  const v = Math.max(0, Math.min(100, Number(pct) || 0));
+  const cls = v >= 90 ? "bad" : (v >= 75 ? "warn" : "");
+  return `<div class="bar ${cls}"><i style="width:${v}%"></i></div>`;
+}
+function age(sec) {
+  if (sec < 10) return "刚刚";
+  if (sec < 60) return `${Math.round(sec)} 秒前`;
+  if (sec < 3600) return `${Math.round(sec / 60)} 分钟前`;
+  if (sec < 86400) return `${Math.round(sec / 3600)} 小时前`;
+  return `${Math.round(sec / 86400)} 天前`;
+}
+// 陈旧度由**前端**按服务端时间戳实时算：快照里的 stale_seconds 只会越来越旧
+function staleness(sample) {
+  const recv = Number(sample.received_at);
+  if (!isFinite(recv)) return Number(sample.stale_seconds) || 0;
+  return Math.max(0, Date.now() / 1000 - recv);
+}
+
+function card(sample) {
+  const stale = staleness(sample);
+  let cls = "ok", label = "在线";
+  if (stale > STALE_BAD_S) {
+    cls = EXPECTED_ONLINE.has(sample.node) ? "bad" : "";
+    label = EXPECTED_ONLINE.has(sample.node) ? "离线（异常）" : "离线（按需开机，正常）";
+  } else if (stale > STALE_WARN_S) { cls = "warn"; label = "数据陈旧"; }
+
+  const cpu = sample.cpu || {}, mem = sample.mem || {}, disk = sample.disk || {}, net = sample.net || {};
+  const extra = sample.extra || {};
+  const extraRows = Object.entries(extra).map(([k, v]) =>
+    `<div class="m"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("");
+
+  return `
+  <section class="card ${cls}">
+    <div class="card-head">
+      <span class="node">${sample.node}</span>
+      <span class="plat">${sample.platform || ""} · ${label}</span>
+      <span class="age">${age(stale)}</span>
+    </div>
+    <div class="metrics">
+      <div class="m"><span class="k">CPU${cpu.cores ? " / " + cpu.cores + " 核" : ""}</span>
+        <span class="v">${fmt(cpu.pct, "%")}</span></div>
+      ${bar(cpu.pct)}
+      <div class="m"><span class="k">平均负载 1min</span><span class="v">${fmt(cpu.load1, "", 2)}</span></div>
+      <div class="m"><span class="k">内存</span>
+        <span class="v">${fmt(mem.used_pct, "%")} <span class="u">${mem.used_mb ? mem.used_mb + "/" + mem.total_mb + " MB" : ""}</span></span></div>
+      ${bar(mem.used_pct)}
+      <div class="m"><span class="k">磁盘</span>
+        <span class="v">${fmt(disk.used_pct, "%")} <span class="u">${disk.free_gb !== undefined ? "剩 " + disk.free_gb + " GB" : ""}</span></span></div>
+      <div class="m"><span class="k">网络 收 / 发</span>
+        <span class="v">${fmt(net.rx_kbps, "")} <span class="u">/</span> ${fmt(net.tx_kbps, " kbps")}</span></div>
+      ${extraRows}
+    </div>
+  </section>`;
+}
+
+function render() {
+  const grid = document.getElementById("grid");
+  const list = [...nodes.values()].sort((a, b) => String(a.node).localeCompare(String(b.node)));
+  grid.innerHTML = list.length
+    ? list.map(card).join("")
+    : '<p class="empty">还没有任何节点上报。启动采集器：<code>python CENTRAL/GUI/status-wall/collect.py --sink http --url http://127.0.0.1:8080/api/telemetry</code></p>';
+  const total = list.length;
+  const offlineHard = list.filter(n => staleness(n) > STALE_BAD_S && EXPECTED_ONLINE.has(n.node)).length;
+  document.getElementById("foot").textContent =
+    `节点 ${total} 个 · 应有却在线的异常离线 ${offlineHard} 个 · 陈旧阈值 ${STALE_WARN_S}s / 离线阈值 ${STALE_BAD_S}s`;
+}
+
+function setConn(state) {
+  const el = document.getElementById("conn");
+  el.className = state;
+  el.textContent = state === "live" ? "实时推送" : (state === "down" ? "推送断开，改用轮询" : "连接中…");
+}
+
+function applySnapshot(payload) {
+  nodes.clear();
+  (payload.nodes || []).forEach(n => nodes.set(n.node, n));
+  render();
+}
+
+let pollTimer = null;
+function startPolling() {
+  if (pollTimer) return;
+  const tick = async () => {
+    try {
+      const r = await fetch("/api/state", { cache: "no-store" });
+      applySnapshot(await r.json());
+      setConn("down");
+    } catch (e) { /* 服务端没了就继续等 */ }
+  };
+  tick();
+  pollTimer = setInterval(tick, 5000);
+}
+function stopPolling() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
+
+function connect() {
+  let es;
+  try { es = new EventSource("/api/stream"); }
+  catch (e) { return startPolling(); }
+  es.onopen = () => { stopPolling(); setConn("live"); };
+  es.onmessage = (ev) => {
+    let msg; try { msg = JSON.parse(ev.data); } catch (e) { return; }
+    if (msg.type === "snapshot") applySnapshot(msg);
+    else if (msg.type === "sample" && msg.node) { nodes.set(msg.node.node, msg.node); render(); }
+  };
+  es.onerror = () => { es.close(); setConn("down"); startPolling(); setTimeout(connect, 15000); };
+}
+
+setInterval(() => {
+  document.getElementById("clock").textContent = new Date().toLocaleTimeString("zh-CN", { hour12: false });
+}, 1000);
+setInterval(render, 5000);          // 让"多久之前"自己往前走
+connect();
+render();
+</script>
+</body>
+</html>

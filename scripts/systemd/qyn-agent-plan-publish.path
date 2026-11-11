@@ -1,0 +1,15 @@
+[Unit]
+Description=QYN 盯着 Agent 数据文件 —— 一变就把规划推给状态墙（零轮询）
+
+[Path]
+# ★ 同时盯**目录**：内核落盘是"写临时文件 + rename"，rename 只改目录的 mtime，
+#   只盯文件会漏事件（inbox.jsonl 是追加写所以没这个问题，data/*.json 不是）。
+PathModified=%h/qyn/agent/data
+PathModified=%h/qyn/agent/data/plans.json
+PathModified=%h/qyn/agent/data/data.json
+PathModified=%h/qyn/agent/data/schedule.json
+PathModified=%h/qyn/agent/data/rules.json
+Unit=qyn-agent-plan-publish.service
+
+[Install]
+WantedBy=paths.target

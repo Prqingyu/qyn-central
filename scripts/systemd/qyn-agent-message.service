@@ -1,0 +1,20 @@
+[Unit]
+Description=QYN 微信来消息 → 唤醒一轮
+Documentation=file:%h/qyn/agent/current/CENTRAL/dsh/README.md
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/qyn/agent
+Environment=DSH_HOME=%h/qyn/.dsh
+Environment=QYN_DSH_HOME=%h/qyn/.dsh
+Environment=QYN_REPO_ROOT=%h/qyn/agent/current
+Environment=QYN_DSH_CLI=%h/qyn/agent/cli/node_modules/.bin/dsh
+Environment=PATH=%h/qyn/agent/bin:%h/qyn/agent/node/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-%h/qyn/agent/agent.env
+# message 模式：脚本自己按游标读收件箱、把消息原文放进提示词，**成功后才推进游标**；
+# 没有新消息就直接退出（不花 token）。簿记归脚本，模型只管"怎么处理"。
+ExecStart=/bin/bash %h/qyn/agent/current/CENTRAL/scripts/qyn-agent-tick.sh message
+TimeoutStartSec=15min
+StandardOutput=append:%h/qyn/agent/logs/tick.log
+StandardError=append:%h/qyn/agent/logs/tick.log

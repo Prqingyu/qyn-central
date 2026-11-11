@@ -1,0 +1,37 @@
+[Unit]
+Description=QYN 手机通道 —— ClawBot 管道泵（长轮询 → 收件箱，默认不回复）
+Documentation=file:%h/qyn/agent/current/PHONE/INTERFACE.md
+After=network-online.target
+Wants=network-online.target
+# 未登录时 run() 以退出码 1 结束；没有这个上限，Restart=always 就是无限重启 + 日志洪水
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+# 工作目录用**稳定父目录**：current 是软链，工具会把它解析成 releases/<ts>，
+# 那样每个 release 都会造一个新工作区（AGENT 那边已经踩过这个坑，见 qyn-agent.service）。
+WorkingDirectory=%h/qyn/agent
+# clawbot 是部署脚本装的包装脚本（走 current 软链）—— 中控机没有 pip，
+# 而 PHONE 是零第三方依赖的，所以不装成 Python 包，直接跑脚本。
+# 管道默认静默：不加载钩子，手机来的消息只写进收件箱，由 agent 决定回什么。
+Environment=PATH=%h/qyn/agent/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+# ★ 管道必须直连。这台机器上 http_proxy 是给 apt / 局域网中继用的（DEV_WORKFLOW §7），
+# 一旦被接收方继承，微信流量会静默走 Windows 中继 —— 中继一挂，"看着还在跑"却什么都收不到。
+Environment=http_proxy=
+Environment=https_proxy=
+Environment=HTTP_PROXY=
+Environment=HTTPS_PROXY=
+Environment=no_proxy=*
+ExecStart=%h/qyn/agent/bin/clawbot run
+Restart=always
+RestartSec=5
+# 锁由内核在进程退出时释放（见 StateLock），所以崩溃重启不会被残留锁挡住；
+# 这里留一点时间让日志刷出来再发 SIGKILL。
+TimeoutStopSec=20
+StandardOutput=append:%h/qyn/agent/logs/phone.log
+StandardError=append:%h/qyn/agent/logs/phone.log
+
+[Install]
+WantedBy=default.target

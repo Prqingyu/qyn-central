@@ -1,0 +1,321 @@
+/* ════════════════════════════════════════════════════════════════════════
+   QYN 信息中心 · 主题：酸性新粗野（ACID BRUTAL）
+   ────────────────────────────────────────────────────────────────────────
+   参考图（三张）的设计语言：
+     · **纯黑**打底 + **荧光酸绿**（#d4ff00）当唯一主角色，黑白灰做骨架
+     · **粗黑无衬线大字**（Helvetica 系）+ **等宽小字**做技术标注
+     · 硬边（0 圆角、2px 实线、零阴影、零渐变）—— 新粗野主义
+     · 装饰语法：**条码**（粗细不等的竖线）、**半调网点**、**酸绿横幅**、
+       `/` 分隔符、`[ ]` 括号、箭头/十字标线
+     · 大字**反白**：酸绿块上压黑字（参考图里最标志性的做法 ✓）
+
+   ★★ 硬规则（用户 2026-11-07）：**主题不许改字号** ✗
+      —— 本文件里没有 font-size / letter-spacing 声明 ✓
+
+   ★ 热插拔约定（见同目录 README.md）：覆盖式主题，只改外观 ✓
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  color-scheme: dark;
+
+  /* ── 黑白灰 + 荧光酸绿 ── */
+  /* ★ 2026-11-07（用户）：背景**不要纯黑** ✗ ⇒ 深灰（带一点蓝绿冷调 ✓）
+     参考图里其实还有**粉 / 橙 / 黄 / 青**四色（色条 + 色块 ✓）⇒ 一起用上 ✓ */
+  --bg: #121316;          /* 深灰（不是 #000 ✓）*/
+  --panel: #17181c;
+  --card: #1c1d22;
+  --line: #2b2b2b;        /* 硬灰边 */
+  --fg: #f2f2f2;
+  --dim: #9a9a9a;
+  --faint: #5e5e5e;
+
+  --ok: #d4ff00;          /* 荧光酸绿（主角）*/
+  --warn: #ff9f45;        /* 橙（注意）*/
+  --bad: #ff4f6d;         /* 粉红（故障）*/
+  --accent: #d4ff00;
+
+  /* 参考图色条里的另外三色 ✓ 只用于装饰与次级强调（不抢主角色 ✓）*/
+  --acid-pink: #ff6b9d;
+  --acid-orange: #ff9f45;
+  --acid-yellow: #ffe066;
+  --acid-teal: #6ff2c8;
+
+  --lamp-off: #1a1a1a;
+  --lamp-dark: #2e2e2e;
+
+  /* 通用 token */
+  --gold-700: #6b8000;
+  --gold-500: #d4ff00;
+  --gold-300: #e4ff66;
+  --gold-100: #f4ffcc;
+  --hairline: #d4ff00;
+  --hairline-soft: #2b2b2b;
+  --metal: linear-gradient(0deg, #d4ff00, #d4ff00);
+  --radius: 0px;
+
+  --font-cn: "Helvetica Neue", "Liberation Sans", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+  --font-latin: "Helvetica Neue", Arial, "Liberation Sans", "DejaVu Sans", sans-serif;
+}
+
+/* ── 底：纯黑 + 顶部条码 + 左下半调网点 ─────────────────────────────── */
+body {
+  background: var(--bg) !important;
+  background-image: none !important;
+  font-family: var(--font-cn) !important;
+}
+
+/* ── 背景装饰（用户 2026-11-07）：**细边多边形线框** ✓
+   （"暗淡的大字"那种装饰必须用 font-size ✗ ⇒ 与硬规则冲突 ⇒ 只用线框 ✓）*/
+body::before {
+  content: "" !important; display: block !important;
+  position: fixed !important; right: -6vw !important; top: -4vh !important;
+  width: 54vw !important; height: 54vw !important;
+  inset: auto !important;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMSI+PGNpcmNsZSBjeD0iMjAwIiBjeT0iMjAwIiByPSIxOTAiIHN0cm9rZS1vcGFjaXR5PSIuNSIvPjxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTUwIiBzdHJva2Utb3BhY2l0eT0iLjM1Ii8+PGNpcmNsZSBjeD0iMjAwIiBjeT0iMjAwIiByPSIxMTAiIHN0cm9rZS1vcGFjaXR5PSIuMjUiLz48cG9seWdvbiBwb2ludHM9IjIwMCw0MCAzMzgsMTIwIDMzOCwyODAgMjAwLDM2MCA2MiwyODAgNjIsMTIwIiBzdHJva2Utb3BhY2l0eT0iLjgiLz48cG9seWdvbiBwb2ludHM9IjIwMCwxMTAgMjkwLDE2MCAyOTAsMjUwIDIwMCwzMDAgMTEwLDI1MCAxMTAsMTYwIiBzdHJva2Utb3BhY2l0eT0iLjYiLz48cGF0aCBkPSJNMjAwIDQwTDIwMCAxMTBNMzM4IDEyMEwyOTAgMTYwTTMzOCAyODBMMjkwIDI1ME0yMDAgMzYwTDIwMCAzMDBNNjIgMjgwTDExMCAyNTBNNjIgMTIwTDExMCAxNjAiIHN0cm9rZS1vcGFjaXR5PSIuNTUiLz48L3N2Zz4=") !important;
+  background-size: contain !important; background-repeat: no-repeat !important;
+  opacity: .13 !important; mix-blend-mode: normal !important;
+  pointer-events: none; z-index: 0;
+  animation: none !important;
+}
+
+
+/* 顶部条码（粗细不等的竖线 ✓ 参考图第 3 张的 barcode 语法 ✓）*/
+html::before {
+  content: "" !important; display: block !important;
+  position: fixed !important; left: 0 !important; right: 0 !important;
+  top: 0 !important; height: 10px !important;
+  width: auto !important; max-width: none !important; max-height: none !important;
+  background: repeating-linear-gradient(90deg,
+    #f2f2f2 0 2px, transparent 2px 4px,
+    #f2f2f2 4px 5px, transparent 5px 9px,
+    #f2f2f2 9px 13px, transparent 13px 15px,
+    #f2f2f2 15px 16px, transparent 16px 22px) !important;
+  opacity: .55 !important; mix-blend-mode: normal !important;
+  pointer-events: none; z-index: 42;
+}
+/* 左下：半调网点（accent 色 ✓）*/
+html::after {
+  content: "" !important; display: block !important;
+  position: fixed !important; left: 0 !important; bottom: 0 !important;
+  width: 240px !important; height: 180px !important;
+  background-image: radial-gradient(circle, var(--accent) 1.1px, transparent 1.6px) !important;
+  background-size: 7px 7px !important; background-repeat: repeat !important;
+  opacity: .22 !important; mix-blend-mode: normal !important;
+  -webkit-mask-image: linear-gradient(45deg, #000 0%, transparent 78%) !important;
+  mask-image: linear-gradient(45deg, #000 0%, transparent 78%) !important;
+  pointer-events: none; z-index: 1;
+}
+body::before, body::after { display: none !important; }
+
+/* ── 面板：硬灰边；展开 = 2px 酸绿边 + 酸绿标题横幅 ─────────────────── */
+.panel {
+  border-radius: 0 !important;
+  border: 1px solid var(--line) !important;
+  background: var(--panel) !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+.panel:not(.collapsed) {
+  border: 2px solid var(--accent) !important;
+  box-shadow: none !important;
+}
+/* 取消金底块 ✓ */
+.panel-head::before { display: none !important; }
+.panel::after { display: none !important; }
+
+/* 标题：`/ SERVICE`（参考图的斜杠前缀 ✓）白字；展开时**反白**（酸绿底黑字 ✓）*/
+.panel-title {
+  background-image: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+  color: var(--fg) !important;
+  font-family: var(--font-latin) !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  text-shadow: none !important;
+  animation: none !important;
+}
+.panel-title::before { content: "/ "; color: var(--accent); }
+.panel-title::after { content: ""; }
+.panel:not(.collapsed) .panel-title {
+  background: var(--accent) !important;
+  -webkit-text-fill-color: var(--bg) !important;
+  color: var(--bg) !important;
+  padding: 0 4px;
+}
+.panel:not(.collapsed) .panel-title::before { color: var(--bg) !important; }
+.panel-note { color: var(--faint) !important; font-family: var(--font-latin) !important; }
+
+/* ── 卡片：黑面 + 1px 硬边 + 左侧**粗酸绿灯条** ─────────────────────── */
+.card, .netcard, .tcard, .set-group, .chat {
+  border-radius: 0 !important;
+  border: 1px solid var(--line) !important;
+  background: var(--card) !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+.card::before, .netcard::before, .tcard::before { display: none !important; }
+.card, .netcard, .tcard { border-left-width: 6px !important; }
+.card.focus, .netcard.focus, .tcard.focus { border-color: var(--accent) !important; box-shadow: none !important; }
+
+/* ── 文字：白/灰骨架 + 等宽技术标注 + `/` 分隔符 ────────────────────── */
+#title .t-en, #clock .clk-t, #clock .clk-d,
+.card-head .mname, .k, .tday, .tlabel {
+  background-image: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+  animation: none !important;
+  text-shadow: none !important;
+}
+#title .t-en {
+  color: var(--fg) !important;
+  font-family: var(--font-latin) !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+}
+/* 手写标题：黑底上做成纯白（酸绿留给数据 ✓）*/
+#title .t-cn { background: #ffffff !important; filter: none !important; animation: none !important; }
+#clock .clk-t { color: var(--fg) !important; font-family: var(--font-latin) !important; font-weight: 800 !important; }
+#clock .clk-d { color: var(--dim) !important; font-family: var(--font-latin) !important; }
+.card-head .mname {
+  color: var(--fg) !important;
+  font-family: var(--font-latin) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+}
+/* 键名：等宽小字 + 斜杠后缀（参考图 `A83 / 2703` 的写法 ✓）*/
+.k, .tlabel {
+  color: var(--dim) !important;
+  font-family: "DejaVu Sans Mono", "Consolas", monospace !important;
+  text-transform: uppercase !important;
+}
+.k::after { content: " /"; color: var(--faint); }
+.v {
+  color: var(--fg) !important;
+  font-family: var(--font-latin) !important;
+  font-weight: 700 !important;
+}
+/* 正常态的数字用酸绿（主角色 ✓）；注意/故障跟着灯色 ✓ */
+.card.ok .v, .netcard.ok .v { color: var(--ok) !important; }
+.card.warn .v, .netcard.warn .v { color: var(--warn) !important; }
+.card.bad .v, .netcard.bad .v { color: var(--bad) !important; }
+.state, .extra, .tsub { color: var(--dim) !important; }
+.offline { color: var(--faint) !important; }
+
+/* ── 进度条：纯酸绿实块（无渐变 ✓）+ 黑槽 ─────────────────────────── */
+.bar {
+  background: #000 !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+  background-image: none !important;
+}
+.bar > i { background: var(--ok) !important; background-image: none !important; border-radius: 0 !important; box-shadow: none !important; }
+.bar.warn > i { background: var(--warn) !important; }
+.bar.bad > i { background: var(--bad) !important; }
+.bar.unknown > i { background: var(--faint) !important; }
+
+/* ── 主灯：黑底 + 2px 硬边 + 酸绿/红 反白块 ────────────────────────── */
+.master {
+  border-radius: 0 !important;
+  border: 2px solid var(--line) !important;
+  background: #000 !important;
+  box-shadow: none !important;
+  font-family: "DejaVu Sans Mono", monospace !important;
+  text-transform: uppercase !important;
+  animation: none !important;
+}
+.master::before { content: "[ "; color: var(--faint); }
+.master::after  { content: " ]"; color: var(--faint); }
+.master.warning.lit {
+  background: var(--bad) !important; color: #000 !important; border-color: var(--bad) !important;
+  animation: none !important;
+}
+.master.caution.lit {
+  background: var(--accent) !important; color: #000 !important; border-color: var(--accent) !important;
+}
+.master.warning.lit::before, .master.warning.lit::after { color: #000 !important; }
+.master.caution.lit::before, .master.caution.lit::after { color: #000 !important; }
+
+/* ── 底条 / 齿轮 / 设置 / 对话：黑白硬边 ────────────────────────────── */
+#dock { border-radius: 0 !important; border: 1px solid var(--line) !important; background: #000 !important; }
+.dock-hint { color: var(--dim) !important; }
+#gear {
+  border-radius: 0 !important; border: 1px solid var(--line) !important;
+  background: #000 !important; color: var(--dim) !important;
+}
+#gear:hover { border-color: var(--accent) !important; color: var(--accent) !important; }
+#settings { background: var(--bg) !important; }
+.set-title { color: var(--fg) !important; font-family: var(--font-latin) !important; font-weight: 800 !important; }
+.set-group h3 { color: var(--accent) !important; font-family: var(--font-latin) !important; text-transform: uppercase !important; }
+.set-group h3::before { content: "/ "; color: var(--faint); }
+.set-row input, #chat-text {
+  border-radius: 0 !important; background: #000 !important;
+  border: 1px solid var(--line) !important; color: var(--fg) !important;
+  font-family: "DejaVu Sans Mono", monospace !important;
+}
+#chat { border-radius: 0 !important; border: 1px solid var(--line) !important; background: #0a0a0a !important; }
+.chat-title { color: var(--accent) !important; font-family: var(--font-latin) !important; }
+.msg { border-radius: 0 !important; }
+
+/* ── 动效：展开时标题横幅**闪一下**（硬切 ✓ 新粗野不做渐变 ✗）────────── */
+body.sweep #title .t-cn, body.sweep #title .t-en,
+body.sweep .panel:not(.collapsed) .panel-title,
+body.sweep .panel:not(.collapsed) .panel-note,
+body.sweep .panel:not(.collapsed) .k,
+body.sweep .panel:not(.collapsed) .card-head .mname,
+body.sweep .panel:not(.collapsed)::after,
+body.sweep .panel:not(.collapsed) .card::before,
+body.sweep .panel:not(.collapsed) .netcard::before,
+body.sweep .panel:not(.collapsed) .tcard::before {
+  animation: none !important;
+}
+@keyframes qynAcidFlash {
+  0%   { background: #ffffff !important; -webkit-text-fill-color: #000 !important; }
+  100% { background: var(--accent) !important; -webkit-text-fill-color: var(--bg) !important; }
+}
+body.sweep .panel:not(.collapsed) .panel-title {
+  animation: qynAcidFlash .45s steps(2) 1 !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  body.sweep .panel:not(.collapsed) .panel-title { animation: none !important; }
+}
+
+/* ── 补充色落地（参考图色条 ✓）：面板标题的 `/` 前缀按栏轮换 粉/橙/黄/青 ── */
+.panel:nth-of-type(1) .panel-title::before { color: var(--acid-teal) !important; }
+.panel:nth-of-type(2) .panel-title::before { color: var(--acid-pink) !important; }
+.panel:nth-of-type(3) .panel-title::before { color: var(--acid-orange) !important; }
+.panel:nth-of-type(4) .panel-title::before { color: var(--acid-yellow) !important; }
+.panel:nth-of-type(5) .panel-title::before { color: var(--acid-teal) !important; }
+.panel:not(.collapsed) .panel-title::before { color: var(--bg) !important; }
+/* 底部：一条**彩色细色条**（参考图顶部的 4 段色块 ✓）*/
+html::after {
+  content: "" !important; display: block !important;
+  position: fixed !important; left: 0 !important; right: 0 !important;
+  bottom: 0 !important; top: auto !important;
+  width: auto !important; height: 4px !important;
+  background: linear-gradient(90deg,
+    var(--acid-pink) 0 25%, var(--acid-orange) 25% 50%,
+    var(--acid-yellow) 50% 75%, var(--acid-teal) 75% 100%) !important;
+  opacity: .75 !important; mix-blend-mode: normal !important;
+  pointer-events: none; z-index: 42;
+}
+
+/* 重排按钮：酸性新粗野（硬边 + 酸绿反白 hover ✓ 2026-11-09 移到对话条右边）*/
+#dock-replan {
+  border-radius: 0 !important;
+  border: 2px solid var(--accent) !important;
+  background: #000 !important;
+  color: var(--accent) !important;
+  font-family: var(--font-latin) !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+}
+#dock-replan::before { content: "/ " !important; color: var(--acid-pink) !important; }
+#dock-replan:hover { background: var(--accent) !important; color: #000 !important; }
+#dock-replan:hover::before { color: #000 !important; }
+#dock-replan.topdone { border-color: var(--acid-orange) !important; color: var(--acid-orange) !important; }
+#dock-replan.topdone:hover { background: var(--acid-orange) !important; color: #000 !important; }
+#dock-replan.busy { color: var(--faint) !important; border-color: var(--line) !important; }
+#dock-replan.done { border-color: var(--acid-teal) !important; color: var(--acid-teal) !important; }

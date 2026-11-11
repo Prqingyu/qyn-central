@@ -1,0 +1,23 @@
+[Unit]
+Description=QYN 午报 —— 14:00 跑一轮规划，带上今天剩下的课（含教室）
+Documentation=file:%h/qyn/agent/current/CENTRAL/dsh/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# 与早报（qyn-agent.service）同构，只有 MODE 不同（afternoon）
+WorkingDirectory=%h/qyn/agent
+Environment=DSH_HOME=%h/qyn/.dsh
+Environment=QYN_DSH_HOME=%h/qyn/.dsh
+Environment=QYN_REPO_ROOT=%h/qyn/agent/current
+Environment=QYN_DSH_CLI=%h/qyn/agent/cli/node_modules/.bin/dsh
+Environment=PATH=%h/qyn/agent/bin:%h/qyn/agent/node/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-%h/qyn/agent/agent.env
+ExecStart=/bin/bash %h/qyn/agent/current/CENTRAL/scripts/qyn-agent-tick.sh afternoon
+TimeoutStartSec=15min
+StandardOutput=append:%h/qyn/agent/logs/agent.log
+StandardError=append:%h/qyn/agent/logs/agent.log
+
+[Install]
+WantedBy=default.target

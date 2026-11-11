@@ -1,0 +1,10 @@
+[Unit]
+Description=QYN 降级源心跳 —— 每 2 分钟看一次主源是否还活着
+Documentation=file:%h/qyn/agent/current/CENTRAL/scripts/qyn-ocgo-fallback.py
+
+[Timer]
+OnCalendar=*:0/2
+Persistent=true
+
+[Install]
+WantedBy=timers.target

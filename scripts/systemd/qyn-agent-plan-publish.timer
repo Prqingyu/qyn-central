@@ -1,0 +1,11 @@
+[Unit]
+Description=QYN 规划推送兜底 —— 每 5 分钟（防漏事件 / 覆盖首次）
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=30s
+Unit=qyn-agent-plan-publish.service
+
+[Install]
+WantedBy=timers.target

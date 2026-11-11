@@ -1,0 +1,7 @@
+[Unit]
+Description=QYN OpenCode GO 额度降级源（主源陈旧时顶上；跟随账号轮切）
+Documentation=file:%h/qyn/agent/current/CENTRAL/scripts/qyn-ocgo-fallback.py
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 %h/qyn/agent/current/CENTRAL/scripts/qyn-ocgo-fallback.py

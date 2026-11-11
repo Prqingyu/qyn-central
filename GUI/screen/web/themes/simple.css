@@ -1,0 +1,182 @@
+/* ════════════════════════════════════════════════════════════════════════
+   QYN 信息中心 · 主题：简洁（SIMPLE）—— **最开始那一版**
+   ────────────────────────────────────────────────────────────────────────
+   就是项目最初的样子：冷灰蓝底 + 亮蓝强调 + 扁平卡片 + 1px 细边。
+   没有鎏金、没有金属字、没有扫光、没有翡翠光点、没有花纹 ✓
+   （把后来加的装饰全部**反向覆盖**掉 ✓）
+
+   ★★ 硬规则（用户 2026-11-07）：**主题不许改字号** ✗
+      —— 本文件里没有 font-size / letter-spacing 声明 ✓
+
+   ★ 热插拔约定（见同目录 README.md）：
+     覆盖式主题 —— 只改颜色 / 字体族 / 装饰 / 动效；
+     布局、尺寸、类名、交互沿用 index.html 的基础样式 ✓
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  color-scheme: dark;
+
+  /* 原始配色（git HEAD 里最初那版 ✓）*/
+  --bg: #0f1216;
+  --card: #171c22;
+  --line: #242c35;
+  --panel: #131820;
+  --fg: #f0f4f8;
+  --dim: #a3aeba;
+  --faint: #75808d;
+  --ok: #3fb950;
+  --warn: #d29922;
+  --bad: #f85149;
+  --accent: #58a6ff;
+  --lamp-off: #2c343d;
+  --lamp-dark: #3a444f;
+
+  /* 主题通用 token：这里全部退化成"无装饰"✓ */
+  --gold-700: #58a6ff;
+  --gold-500: #58a6ff;
+  --gold-300: #8bc4ff;
+  --gold-100: #c9e3ff;
+  --hairline: rgba(88, 166, 255, .45);
+  --hairline-soft: rgba(88, 166, 255, .18);
+  --metal: linear-gradient(0deg, #58a6ff, #58a6ff);
+  --radius: 10px;
+
+  --font-cn: "Noto Sans CJK SC", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-latin: "Segoe UI", "Liberation Sans", "DejaVu Sans", system-ui, sans-serif;
+}
+
+/* ── 底：纯色（无渐变、无网格、无光晕、无花纹 ✓）────────────────────── */
+body {
+  background: var(--bg) !important;
+  background-image: none !important;
+  font-family: var(--font-cn) !important;
+}
+html::before, html::after, body::before, body::after { display: none !important; }
+
+/* ── 面板：扁平 + 1px 细边 ───────────────────────────────────────────── */
+.panel {
+  border-radius: var(--radius) !important;
+  border: 1px solid var(--line) !important;
+  background: var(--panel) !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+.panel:not(.collapsed) {
+  border-color: #3b4a5c !important;
+  box-shadow: none !important;
+}
+/* 标题带：取消金色底块 ✓ 回到原来的"纯文字标题" */
+.panel-head::before { display: none !important; }
+.panel::after { display: none !important; }
+.panel-title {
+  background-image: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+  color: var(--accent) !important;
+  font-family: var(--font-latin) !important;
+  font-weight: 600 !important;
+  animation: none !important;
+  text-shadow: none !important;
+}
+.panel-note { color: var(--dim) !important; animation: none !important; }
+
+/* ── 卡片：扁平 + 细边 + 左侧灯条（原样 ✓）────────────────────────── */
+.card, .netcard, .tcard, .set-group, .chat {
+  border-radius: var(--radius) !important;
+  border: 1px solid var(--line) !important;
+  background: var(--card) !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+.card::before, .netcard::before, .tcard::before { display: none !important; }
+.card.focus, .netcard.focus, .tcard.focus {
+  border-color: var(--accent) !important;
+  box-shadow: inset 0 0 0 1px var(--accent) !important;
+}
+
+/* ── 文字：取消金属字/荧光 ✓ 回到普通文字 ─────────────────────────── */
+#title .t-en, #clock .clk-t, #clock .clk-d,
+.card-head .mname, .k, .tday, .tlabel {
+  background-image: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+  animation: none !important;
+  text-shadow: none !important;
+}
+#title .t-en { color: var(--fg) !important; font-family: var(--font-latin) !important; }
+/* 手写标题：取消金色遮罩（用 filter 把金色调回白）*/
+#title .t-cn {
+  background: #ffffff !important;
+  filter: none !important;
+  animation: none !important;
+}
+#clock .clk-t { color: var(--fg) !important; font-family: var(--font-latin) !important; }
+#clock .clk-d { color: var(--fg) !important; font-family: var(--font-latin) !important; }
+#conn { color: var(--faint) !important; }
+.card-head .mname { color: var(--fg) !important; font-family: var(--font-latin) !important; }
+.k, .tlabel { color: var(--dim) !important; font-family: var(--font-latin) !important; }
+.v { color: var(--fg) !important; font-family: var(--font-latin) !important; }
+.state { color: var(--dim) !important; }
+.extra { color: var(--dim) !important; }
+.offline { color: var(--faint) !important; }
+
+/* ── 进度条：实色（无金属渐变 ✓）────────────────────────────────────── */
+.bar { background: #0b0f13 !important; border-radius: 3px !important; }
+.bar > i { background: var(--ok) !important; border-radius: 3px !important; box-shadow: none !important; }
+.bar.warn > i { background: var(--warn) !important; }
+.bar.bad  > i { background: var(--bad) !important; }
+.bar.unknown > i { background: var(--faint) !important; }
+
+/* ── 主灯：原样（红/琥珀 ✓ 无金属浮雕 ✓）──────────────────────────── */
+.master {
+  border-radius: var(--radius) !important;
+  background: var(--card) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+.master.warning.lit {
+  color: #ff9b93 !important; background: #2a0f0d !important; border-color: #8d2a22 !important;
+  box-shadow: inset 0 0 0 1px #8d2a22 !important;
+}
+.master.caution.lit {
+  color: #ffcf6b !important; background: #2a2109 !important; border-color: #8a6415 !important;
+  box-shadow: inset 0 0 0 1px #8a6415 !important;
+}
+
+/* ── 底条 / 齿轮 / 设置 / 对话：扁平 ───────────────────────────────── */
+#dock { border-radius: var(--radius) !important; border: 1px solid var(--line) !important; background: var(--card) !important; }
+#gear { border-radius: var(--radius) !important; border: 1px solid var(--line) !important; background: var(--card) !important; color: var(--dim) !important; }
+#gear:hover { border-color: var(--accent) !important; color: var(--fg) !important; }
+#settings { background: var(--bg) !important; }
+.set-title { color: var(--accent) !important; }
+.set-group h3 { color: var(--accent) !important; }
+#chat { border-radius: var(--radius) !important; border: 1px solid var(--line) !important; background: var(--panel) !important; }
+.chat-title { color: var(--accent) !important; }
+
+/* ── 动效：**全部关掉** ✓（简洁版没有扫光/呼吸/闪烁 ✓）────────────── */
+body.sweep #title .t-cn, body.sweep #title .t-en,
+body.sweep .panel:not(.collapsed) .panel-title,
+body.sweep .panel:not(.collapsed) .panel-note,
+body.sweep .panel:not(.collapsed) .k,
+body.sweep .panel:not(.collapsed) .card-head .mname,
+body.sweep .panel:not(.collapsed)::after,
+body.sweep .panel:not(.collapsed) .card::before,
+body.sweep .panel:not(.collapsed) .netcard::before,
+body.sweep .panel:not(.collapsed) .tcard::before {
+  animation: none !important;
+}
+
+/* 重排按钮：和 dock 同一套（细边 + 无装饰 ✓ 2026-11-09 移到对话条右边）*/
+#dock-replan {
+  border-radius: var(--radius) !important;
+  border: 1px solid var(--line) !important;
+  background: var(--card) !important;
+  color: var(--dim) !important;
+}
+#dock-replan:hover { border-color: var(--accent) !important; color: var(--fg) !important; background: #1c2229 !important; }
+#dock-replan.topdone { border-color: var(--warn) !important; color: var(--warn) !important; }
+#dock-replan.busy { color: var(--faint) !important; border-color: var(--line) !important; }
+#dock-replan.done { border-color: var(--ok) !important; color: var(--ok) !important; }

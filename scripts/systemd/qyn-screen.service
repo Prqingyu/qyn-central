@@ -1,0 +1,20 @@
+[Unit]
+Description=QYN 屏幕 · 静态服务（屏幕壳 v0）
+# ★★ 2026-10-25 修：原来 `After=default.target` ✗ ⇒ 和 qyn-screen-policy
+#   （`After=qyn-screen`）组成顺序环 ⇒ 开机时 screen-policy 起不来 ✗
+#   （同一轮重启暴露的第二个环 ✓）
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/qyn/current/screen
+ExecStart=/usr/bin/python3 %h/qyn/current/screen/serve.py --host 127.0.0.1 --port 8090
+Restart=always
+RestartSec=3
+# 同上：stdout 重定向到文件时 Python 是块缓冲的，日志会不落盘
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=append:%h/qyn/logs/screen.log
+StandardError=append:%h/qyn/logs/screen.log
+
+[Install]
+WantedBy=default.target

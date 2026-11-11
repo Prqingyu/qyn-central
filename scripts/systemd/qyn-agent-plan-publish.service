@@ -1,0 +1,9 @@
+[Unit]
+Description=QYN 规划与待办 → 推给状态墙（node=agent-plan，只读内核）
+After=network-online.target
+
+[Service]
+Type=oneshot
+# ★ 只读：只调内核的 wall / sessions / context（这三个都不写盘），绝不 apply/mark/sync。
+#   数据一变就由 path 单元触发，timer 每 5 分钟兜底。
+ExecStart=/usr/bin/python3 %h/qyn/agent/current/CENTRAL/scripts/agent-plan-publish.py --post

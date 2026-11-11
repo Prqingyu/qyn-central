@@ -1,0 +1,22 @@
+[Unit]
+Description=QYN 状态墙 · 本机采集器（psutil → HTTP ingest）
+After=qyn-wall.service
+Wants=qyn-wall.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/qyn/current/status-wall
+# ⚠️ 同上：暂时用系统 python3（系统已装 psutil 7.1.0）。有 venv 后换成 %h/qyn/venv/bin/python。
+# 节点 ID **显式给**（不靠主机名：实测有台机器主机名带 emoji，会污染 MQTT 主题）
+# --wan-probe：公网**通断性**（丢包率 + 往返）—— 出口是"全内网共用一条路"，
+#   所以只让这台 24×7 的中控机去探，别的机器不用敲公网 DNS。
+ExecStart=/usr/bin/python3 %h/qyn/current/status-wall/collect.py --sink http --url http://127.0.0.1:8080/api/telemetry --node central --interval 5 --wan-probe
+Restart=always
+RestartSec=5
+# ★ 必须：stdout 重定向到文件时 Python 是块缓冲的，日志会不落盘
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=append:%h/qyn/logs/collect.log
+StandardError=append:%h/qyn/logs/collect.log
+
+[Install]
+WantedBy=default.target

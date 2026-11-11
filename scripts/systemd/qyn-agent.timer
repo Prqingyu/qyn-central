@@ -1,0 +1,13 @@
+[Unit]
+Description=QYN 时间管理 Agent —— 每日一轮（07:00）
+Documentation=file:%h/qyn/agent/current/CENTRAL/dsh/README.md
+
+[Timer]
+# 每天 07:00 跑一轮；开机错过就在开机后补一次
+OnCalendar=*-*-* 07:00:00
+Persistent=true
+AccuracySec=1min
+Unit=qyn-agent.service
+
+[Install]
+WantedBy=timers.target

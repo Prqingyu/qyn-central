@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=QYN 屏幕（kiosk）
+Comment=登录后自动全屏显示信息中心屏幕
+# sleep 8：等服务先起来，否则开机时会先闪一下"无法访问"
+# ⚠️ 浏览器用的是 snap 版 Firefox（/usr/bin/firefox）。--kiosk = 全屏、无地址栏。
+#    换 Chromium 的话把下面 Exec 里的 /usr/bin/firefox 换成 /snap/bin/chromium
+#    并加上 --noerrdialogs --disable-infobars --disable-session-crashed-bubble。
+Exec=sh -c "sleep 8; exec /usr/bin/firefox --kiosk http://127.0.0.1:8090/"
+X-GNOME-Autostart-enabled=true
+NoDisplay=false

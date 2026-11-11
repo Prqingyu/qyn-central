@@ -1,0 +1,23 @@
+[Unit]
+Description=QYN 屏幕 · TIME AGENT 只读桥（内核只读命令 → HTTP）
+Documentation=file:///home/user/qyn/current/time-panel/README.md
+After=network.target
+
+[Service]
+Type=simple
+# ★ 只读：桥只调内核的 sessions / anomalies（内核文档写明这两个不写盘）。
+#   绝不调 apply / mark / sync —— 写操作只属于时间管理 Agent。
+#   内核路径用 current/AGENT/qyn.py：那里的 data 是指向 ~/qyn/agent/data 的符号链接，
+#   所以读到的是**活数据**，不是发布快照。
+#   --days 14：既要凑满屏幕上的 6 条（用户 2026-10-14），也要让**新登记**的东西立刻看得见
+#   —— 用户 2026-10-16：微信传图登记了一条 10/29 的作业，7 天窗口把它挡在外面，
+#   大屏上「什么都没变」。按紧迫度排序，最近那几条不受影响，展开时能看到的更多。
+ExecStart=/usr/bin/python3 %h/qyn/current/time-panel/serve.py --port 8091 --kernel %h/qyn/agent/current/AGENT/qyn.py --days 14
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=append:%h/qyn/logs/time-panel.log
+StandardError=append:%h/qyn/logs/time-panel.log
+
+[Install]
+WantedBy=default.target

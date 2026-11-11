@@ -1,0 +1,31 @@
+[Unit]
+Description=QYN 时间管理 Agent —— DSH headless 一轮（无人值守）
+Documentation=file:%h/qyn/agent/current/CENTRAL/dsh/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# 工作目录决定 DSH 的「项目根」与 {{cwd}}；用稳定父目录而不是 current（current 是软链，
+# DSH 会把它解析成 releases/<ts> ⇒ 每发一次版就多一个工作区，曾攒到 11 个）。
+# 插件找内核用 QYN_REPO_ROOT。
+WorkingDirectory=%h/qyn/agent
+# DSH_HOME 隔离在 ~/qyn/.dsh（绝不碰宿主 ~/.dsh）；QYN_DSH_HOME 给彩排/装配脚本用
+Environment=DSH_HOME=%h/qyn/.dsh
+Environment=QYN_DSH_HOME=%h/qyn/.dsh
+Environment=QYN_REPO_ROOT=%h/qyn/agent/current
+Environment=QYN_DSH_CLI=%h/qyn/agent/cli/node_modules/.bin/dsh
+# PATH 里的 %h/qyn/agent/bin 是手机通道的命令入口（clawbot）：
+# 少了它，配置里写了 qyn-phone 技能、技能里也写了 clawbot，跑起来却是 command not found。
+Environment=PATH=%h/qyn/agent/bin:%h/qyn/agent/node/bin:/usr/local/bin:/usr/bin:/bin
+# 凭据（chmod 600）：DEEPSEEK_API_KEY=... 一行；没有这个文件就起不来，属于预期
+EnvironmentFile=-%h/qyn/agent/agent.env
+# ★ 不再直接跑 dsh：走驱动器脚本 —— 它跑完这一轮后会问内核「下一个边界是哪一刻」，
+#   并用 systemd-run 排下一次唤醒（跟着规划走，而不是固定时刻）。用户 2026-10-15。
+ExecStart=/bin/bash %h/qyn/agent/current/CENTRAL/scripts/qyn-agent-tick.sh morning
+TimeoutStartSec=15min
+StandardOutput=append:%h/qyn/agent/logs/agent.log
+StandardError=append:%h/qyn/agent/logs/agent.log
+
+[Install]
+WantedBy=default.target

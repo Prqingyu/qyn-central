@@ -1,0 +1,10 @@
+[Unit]
+Description=QYN Agent 系统探针（只读：最后一轮 / 唤醒链 / 守卫 / 微信通道 / 内核 / 数据 → 大屏 SERVICE）
+After=network-online.target
+
+[Service]
+Type=oneshot
+# ★ 只读：解析 tick.log / phone.log / inbox.jsonl / media/ + systemd 只读查询，
+#   外加一次内核 context（读快照新鲜度，判据与内核同一份实现）。
+#   绝不 apply / mark / sync —— 写操作只属于时间管理 Agent。
+ExecStart=/usr/bin/python3 %h/qyn/agent/current/CENTRAL/scripts/agent-probe.py --post

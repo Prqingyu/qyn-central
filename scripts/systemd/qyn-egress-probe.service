@@ -1,0 +1,7 @@
+[Unit]
+Description=QYN 出口探测（模型端点连通性，独立于模型本身）
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash %h/qyn/agent/current/CENTRAL/scripts/egress-probe.sh

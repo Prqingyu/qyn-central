@@ -1,0 +1,15 @@
+[Unit]
+Description=每 5 秒推一帧 Proxmox 宿主机状态到信息中心
+
+[Timer]
+# 开机 20 秒后第一次；之后**每 5 秒**一次 ✓
+# ★ 2026-11-08：原来 15s ⇒ 撞上墙的判定（10s 算 LOST / 15s 算 OFFLINE）✗
+#   墙上其它机器都是 5s 推一次（central 实测 stale 4.5s ✓）⇒ 这里对齐成 5s ✓
+OnBootSec=20s
+OnUnitActiveSec=5s
+AccuracySec=1s
+# 错过就补跑一次（PVE 重启后不会空着 ✓）
+Persistent=true
+
+[Install]
+WantedBy=timers.target

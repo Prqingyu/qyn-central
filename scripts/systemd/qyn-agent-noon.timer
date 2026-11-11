@@ -1,0 +1,14 @@
+[Unit]
+Description=QYN 午报定时器 —— 每天 14:00 发一条带课表（含教室）的规划
+Documentation=file:%h/qyn/agent/current/CENTRAL/dsh/README.md
+
+[Timer]
+# ★ 用户 2026-11-06：早上 07:00 那条之外，下午 14:00 再发一条；
+#   两条都带"今天要上的课 + 教室"，方便直接去对应课室。
+OnCalendar=*-*-* 14:00:00
+Persistent=true
+AccuracySec=1min
+Unit=qyn-agent-noon.service
+
+[Install]
+WantedBy=timers.target

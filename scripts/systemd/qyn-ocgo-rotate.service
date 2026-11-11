@@ -1,0 +1,8 @@
+[Unit]
+Description=QYN OpenCode GO 账号轮切（固定 15 天切一次 Key）
+Documentation=file:%h/qyn/agent/current/CENTRAL/scripts/qyn-ocgo-rotate.sh
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash %h/qyn/agent/current/CENTRAL/scripts/qyn-ocgo-rotate.sh
+# 幂等：已经是当前账号就什么都不做（脚本内部判断 ✓）

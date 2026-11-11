@@ -1,0 +1,13 @@
+[Unit]
+Description=QYN 盯着手机收件箱 —— 一来消息就唤醒（零轮询）
+Documentation=file:%h/qyn/agent/current/CENTRAL/dsh/README.md
+
+[Path]
+# 接收方每收到一条消息就往这里追加 ⇒ mtime 变化即触发，不需要任何轮询
+PathModified=%h/qyn/agent/phone-state/inbox.jsonl
+# 顺带盯接收方的游标文件：它一变说明刚拉取过，可能带来新消息
+PathModified=%h/qyn/agent/phone-state/cursor.json
+Unit=qyn-agent-message.service
+
+[Install]
+WantedBy=paths.target

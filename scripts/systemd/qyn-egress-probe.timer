@@ -1,0 +1,11 @@
+[Unit]
+Description=QYN 出口探测 —— 每 5 分钟
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=30s
+Unit=qyn-egress-probe.service
+
+[Install]
+WantedBy=timers.target

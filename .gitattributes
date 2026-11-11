@@ -1,0 +1,35 @@
+# 跨平台铁律：统一 LF 行尾 + UTF-8，杜绝 Windows 污染
+#
+# 这不是洁癖。真实踩过的两个坑：
+#   1. .bat 文件被 GBK 解码成乱码，整个脚本跑不起来
+#   2. shell 脚本带 CRLF 传到 Linux，直接报 "bad interpreter: /bin/bash^M"
+#
+# 开发在 Windows、运行在 Linux ⇒ 行尾和编码必须在 git 层强制住。
+
+* text=auto eol=lf
+
+# 明确的文本类型
+*.py    text eol=lf
+*.sh    text eol=lf
+*.md    text eol=lf
+*.toml  text eol=lf
+*.json  text eol=lf
+*.html  text eol=lf
+*.css   text eol=lf
+*.js    text eol=lf
+*.txt   text eol=lf
+
+# Windows 批处理必须 CRLF，否则 cmd 解析出错
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+# 二进制，不做任何转换
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.zip   binary
+*.gz    binary
+*.tar   binary

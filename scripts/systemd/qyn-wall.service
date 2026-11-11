@@ -1,0 +1,30 @@
+[Unit]
+Description=QYN 状态墙 · 服务端（HTTP + SSE + ingest）
+# 说明与用法见 CENTRAL/GUI/status-wall/README.md（本机项目文档，不写 URL）
+# ★★ 2026-10-25 修：这里原来写 `After=default.target` ✗ ——
+#   本单元是 `WantedBy=default.target`（被 target 拉起），却又排在 target 之后
+#   ⇒ 和 qyn-collect（`After=qyn-wall`）组成**顺序环** ⇒ 开机时 collect 直接起不来 ✗
+#   （用户报"中控重启后状态异常"：central/mc 两帧一直是旧的 ✗）
+#   单元**不要**排在想拉起它的 target 之后 ✓。要等网络就用 `After=network.target` ✓。
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/qyn/current/status-wall
+# ⚠️ 暂时用系统 python3：中控机缺 python3.14-venv，建不了 venv（需 sudo）。
+#    装好 python3.14-venv 后把 ExecStart 换成 %h/qyn/venv/bin/python。
+ExecStart=/usr/bin/python3 %h/qyn/current/status-wall/serve.py --host 0.0.0.0 --port 8080 --db %h/qyn/data/wall.db
+# 绑 0.0.0.0 而不是 127.0.0.1：**别的节点要能上报**（win-dev / 存储站 / MC 都走这条 ingest）。
+# 只在 192.0.2.10/24 内网可达（机器在路由器后面，外部进不来）；ingest 目前无鉴权，
+# 要不要加 token 见 CENTRAL/GUI/TASKS.md 的 BE-3。
+Restart=always
+RestartSec=3
+# ★ 必须：stdout 重定向到文件时 Python 是**块缓冲**的，启动日志会一直不落盘
+#   （实测 wall.log 空空如也，而服务其实在跑 —— 离线排查最怕这个）
+Environment=PYTHONUNBUFFERED=1
+# 日志进 journald（journalctl --user -u qyn-wall），同时留一份文件便于离线排查
+StandardOutput=append:%h/qyn/logs/wall.log
+StandardError=append:%h/qyn/logs/wall.log
+
+[Install]
+WantedBy=default.target

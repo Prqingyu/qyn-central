@@ -1,0 +1,24 @@
+[Unit]
+Description=QYN 一键重排 —— 大屏按钮触发的一轮规划（只更屏，不发微信）
+Documentation=file:%h/qyn/agent/current/CENTRAL/dsh/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# 与早报/午报同构，只有 MODE 不同（replan）。★ 这是**按需**单元：桥的 POST /api/replan 启动它，
+# 不挂 timer —— 不装 timer 就不会自己跑。
+WorkingDirectory=%h/qyn/agent
+Environment=DSH_HOME=%h/qyn/.dsh
+Environment=QYN_DSH_HOME=%h/qyn/.dsh
+Environment=QYN_REPO_ROOT=%h/qyn/agent/current
+Environment=QYN_DSH_CLI=%h/qyn/agent/cli/node_modules/.bin/dsh
+Environment=PATH=%h/qyn/agent/bin:%h/qyn/agent/node/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-%h/qyn/agent/agent.env
+ExecStart=/bin/bash %h/qyn/agent/current/CENTRAL/scripts/qyn-agent-tick.sh replan
+TimeoutStartSec=15min
+StandardOutput=append:%h/qyn/agent/logs/agent.log
+StandardError=append:%h/qyn/agent/logs/agent.log
+
+[Install]
+WantedBy=default.target

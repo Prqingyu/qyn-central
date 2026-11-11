@@ -1,0 +1,22 @@
+# 状态墙 · 采集器配置示例
+#
+# 复制成 config.toml 再改（config.toml 已在 .gitignore 里，不会进版本库）
+
+# 节点 ID。出现在 MQTT 主题 qyn/node/<node>/telemetry 里，
+# 必须与 STATUS_WALL.md §4 的节点矩阵一致。
+node = "central"
+
+# 输出去向：stdout（本地验证用） | mqtt | http
+sink = "mqtt"
+
+# MQTT broker。中控机自己跑 broker 时是 127.0.0.1；
+# Windows 开发机连中控机的 broker 时填 127.0.0.1。
+broker = "127.0.0.1"
+port = 1883
+prefix = "qyn"
+
+# --sink http 时的上报地址（状态墙服务端）
+# url = "http://127.0.0.1:8080/api/telemetry"
+
+# 采样间隔（秒）
+interval = 5

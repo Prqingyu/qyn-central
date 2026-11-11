@@ -1,0 +1,293 @@
+@import url("fonts/fusion-12px/Fusion-Pixel-12px-Monospaced-Simplified-Chinese.css");
+/* ★ 2026-11-07（用户）：MC 的数字/标题用**原版 示例 字体** ✓
+   （npm typeface-minecraft ✓ 3KB woff2 ✓ 本地 ✓ 零外链 ✓）
+   示例 只有拉丁字形 ⇒ 中文自动回落到 Fusion Pixel 像素中文字体 ✓ */
+@font-face {
+  font-family: "示例";
+  src: url("fonts/minecraftia/minecraft.woff2") format("woff2"),
+       url("fonts/minecraftia/minecraft.woff") format("woff"),
+       url("fonts/minecraftia/minecraft.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   QYN 信息中心 · 主题：Minecraft（像素方块 GUI）
+   ────────────────────────────────────────────────────────────────────────
+   色值与结构取自 Minecraft 原版 GUI（参考：
+     · https://codepen.io/isd-crew/pen/qBMprNv   ← 纯 CSS 复刻，给出了准确色值
+     · https://learn.microsoft.com/en-us/minecraft/creator/reference/content/
+       jsonuireference/examples/jsonuicomponents/ui_global_variables   ← 官方 JSON UI 变量）
+   原版数值：
+     面板灰 #c6c6c6  /  槽位灰 #8b8b8b  /  悬停 #a1a1a1
+     外描边 #000000（2px）/  亮边 #ffffff（上、左）/  暗边 #555555（下、右）
+     内凹槽：inset 上/左 #373737 + 下/右 #ffffff（2px）
+     背景 #3d4863（游戏内菜单后面的深蓝）
+
+   风格要点：
+     · 一切都是**方块**：0 圆角、2px 像素边、硬明暗（无渐变、无阴影模糊）
+     · 面板 = 凸起（亮边在上左）；槽位 = **凹下**（暗边在上左）—— 原版就是这么区分的
+     · 文字深色压在浅灰上；等宽字体；`image-rendering: pixelated`
+
+   ★★ 硬规则（用户 2026-11-07）：**主题不许改字号** ✗
+      —— 本文件里没有 font-size / letter-spacing 声明 ✓
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  color-scheme: light;
+
+  /* ── 原版 GUI 色 ── */
+  /* ★ 2026-11-07（用户）：原版浅灰面板 + 深字在墙上**对比度不够** ✗
+     ⇒ 换成**暗色系**（深灰面板 + 浅字 ✓），明暗边也按暗色重排 ✓ */
+  --bg: #15161a;          /* 近黑深灰底 */
+  --panel: #2f3136;       /* 面板深灰 */
+  --card: #26282d;        /* 槽位更暗 */
+  --line: #101114;        /* 暗边 */
+  --fg: #e8e8ea;          /* 浅字 ✓ */
+  --dim: #b4b6bc;
+  --faint: #85878e;
+
+  --ok: #5fd85f;          /* 草绿（提亮 ✓ 暗底上够醒目）*/
+  --warn: #f5c542;        /* 金 */
+  --bad: #ff5a5a;         /* 红石 */
+  --accent: #4aedd9;      /* 选中 = 钻石青（暗底上最跳 ✓）*/
+
+  --lamp-off: #3a3c42;
+  --lamp-dark: #4a4c52;
+
+  /* 通用 token */
+  --gold-700: #6b5a20;
+  --gold-500: #a8781a;
+  --gold-300: #c9a34a;
+  --gold-100: #f0dfa8;
+  --hairline: #4aedd9;
+  --hairline-soft: #3c3f45;
+  --metal: linear-gradient(0deg, #c6c6c6, #c6c6c6);
+  --radius: 0px;
+
+  --font-cn: "Fusion Pixel 12px Monospaced Simplified Chinese", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+  --font-latin: "示例", "DejaVu Sans Mono", "Consolas", monospace;
+}
+
+/* ── 底：深蓝 + 像素噪点（4px 棋盘格 ✓ 像 MC 的像素贴图）─────────────── */
+body {
+  background-color: var(--bg) !important;
+  background-image:
+    repeating-conic-gradient(rgba(255, 255, 255, .022) 0% 25%, transparent 0% 50%) !important;
+  background-size: 8px 8px !important;
+  background-attachment: fixed !important;
+  font-family: var(--font-cn) !important;
+  image-rendering: pixelated;
+}
+html::before, html::after, body::before, body::after { display: none !important; }
+
+/* ── 面板：凸起方块（亮边在上左、暗边在下右、外描边黑）───────────────── */
+.panel {
+  border-radius: 0 !important;
+  border: 2px solid !important;
+  border-color: #5a5c63 #0b0c0e #0b0c0e #5a5c63 !important;   /* 上 右 下 左 ✓ 暗色版 */
+  outline: 2px solid #000000 !important;
+  background: var(--panel) !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+.panel:not(.collapsed) {
+  border-color: #5a5c63 #0b0c0e #0b0c0e #5a5c63 !important;
+  outline-color: var(--accent) !important;                    /* 选中 = 深蓝描边 ✓ */
+  box-shadow: none !important;
+}
+/* 标题：原版 GUI 里标题就是深灰字，没有色块 ✓ */
+.panel-head::before { display: none !important; }
+.panel::after { display: none !important; }
+.panel-title {
+  background-image: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+  color: #cfd2d8 !important;
+  font-family: var(--font-latin) !important;
+  font-weight: 700 !important;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, .85) !important;  /* 暗底上做凹字 ✓ */
+  animation: none !important;
+}
+.panel:not(.collapsed) .panel-title { color: var(--accent) !important; }
+.panel-note { color: #9a9ca3 !important; text-shadow: none !important; }
+
+/* ── 卡片：**凹下槽位**（inset 暗上左 + 亮下右 ✓ 原版槽位就是内凹）────── */
+.card, .netcard, .tcard, .set-group, .chat {
+  border-radius: 0 !important;
+  border: none !important;
+  background: var(--card) !important;
+  backdrop-filter: none !important;
+  box-shadow: inset 2px 2px 0 #0b0c0e, inset -2px -2px 0 #4a4c52 !important;
+}
+.card::before, .netcard::before, .tcard::before { display: none !important; }
+.card, .netcard, .tcard { border-left-width: 0 !important; }
+.card.focus, .netcard.focus, .tcard.focus {
+  box-shadow: inset 2px 2px 0 #0b0c0e, inset -2px -2px 0 #4a4c52,
+              0 0 0 2px var(--accent) !important;
+}
+
+/* ── 文字：深色压在浅灰上 ──────────────────────────────────────────── */
+#title .t-en, #clock .clk-t, #clock .clk-d,
+.card-head .mname, .k, .tday, .tlabel {
+  background-image: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+  animation: none !important;
+  text-shadow: none !important;
+}
+/* MC 标题风：示例 + 2px 硬投影 + 3D 堆叠（原版 Logo 那种方块立体感 ✓）*/
+#title .t-en {
+  color: #ffffff !important;
+  font-family: var(--font-latin) !important;
+  font-weight: normal !important;
+  text-transform: uppercase !important;
+  text-shadow: 2px 2px 0 #3f3f3f, 4px 4px 0 #000000, 0 0 2px #000000 !important;
+}
+#clock .clk-t {
+  font-family: var(--font-latin) !important;
+  font-weight: normal !important;
+  text-shadow: 2px 2px 0 #3f3f3f, 4px 4px 0 #000000 !important;
+}
+/* 手写标题：MC 风用**白字黑描边**（像游戏里的招牌字 ✓）*/
+#title .t-cn {
+  background: #ffffff !important;
+  filter: drop-shadow(2px 0 0 #000) drop-shadow(-2px 0 0 #000)
+          drop-shadow(0 2px 0 #000) drop-shadow(0 -2px 0 #000) !important;
+  animation: none !important;
+}
+#clock .clk-t { color: #ffffff !important; font-family: var(--font-latin) !important; text-shadow: 2px 2px 0 #000 !important; }
+#clock .clk-d { color: #dfe4ee !important; font-family: var(--font-latin) !important; text-shadow: 1px 1px 0 #000 !important; }
+.card-head .mname { color: #f0f1f3 !important; font-family: var(--font-latin) !important; font-weight: normal !important; text-shadow: 2px 2px 0 #1a1a1a !important; }
+.k, .tlabel { color: #c3c6cc !important; font-family: var(--font-latin) !important; text-shadow: 1px 1px 0 #101010 !important; }
+.v {
+  color: #ffffff !important;
+  font-family: var(--font-latin) !important;
+  font-weight: normal !important;
+  text-shadow: 2px 2px 0 #1a1a1a !important;   /* MC 原版文字的 1–2px 硬阴影 ✓ */
+}
+.card.ok .v, .netcard.ok .v { color: var(--ok) !important; }
+.card.warn .v, .netcard.warn .v { color: var(--warn) !important; }
+.card.bad .v, .netcard.bad .v { color: var(--bad) !important; }
+.state, .extra, .tsub { color: #b4b6bc !important; }
+.offline { color: #7e8087 !important; }
+
+/* ── 进度条：像 XP 条（深槽 + 绿色像素块）──────────────────────────── */
+.bar {
+  background: #373737 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: inset 2px 2px 0 #08090b, inset -2px -2px 0 #4a4c52 !important;
+  background-image: none !important;
+}
+.bar > i {
+  border-radius: 0 !important;
+  background: var(--ok) !important;
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 2px, transparent 2px 6px) !important;
+  box-shadow: none !important;
+}
+.bar.warn > i { background: var(--warn) !important; }
+.bar.bad > i { background: var(--bad) !important; }
+.bar.unknown > i { background: var(--lamp-off) !important; background-image: none !important; }
+
+/* ── 主灯：MC 按钮（凸起；亮起 = 按下 + 彩色）───────────────────────── */
+.master {
+  border-radius: 0 !important;
+  border: 2px solid !important;
+  border-color: #5a5c63 #0b0c0e #0b0c0e #5a5c63 !important;
+  outline: 2px solid #000000 !important;
+  background: var(--panel) !important;
+  color: #e8e8ea !important;
+  box-shadow: none !important;
+  font-family: var(--font-latin) !important;
+  animation: none !important;
+}
+.master::before, .master::after { content: "" !important; }
+.master.warning.lit {
+  background: var(--bad) !important; color: #ffffff !important;
+  border-color: #ff9a9a #4a0f0f #4a0f0f #ff9a9a !important;
+}
+.master.caution.lit {
+  background: var(--warn) !important; color: #ffffff !important;
+  border-color: #ffe0a0 #4a3408 #4a3408 #ffe0a0 !important;
+}
+
+/* ── 底条：像**快捷栏**（9 格槽位那条 ✓）──────────────────────────── */
+#dock {
+  border-radius: 0 !important;
+  border: 2px solid !important;
+  border-color: #5a5c63 #0b0c0e #0b0c0e #5a5c63 !important;
+  outline: 2px solid #000000 !important;
+  background: var(--panel) !important;
+}
+.dock-hint { color: #c3c6cc !important; }
+#gear {
+  border-radius: 0 !important;
+  border: 2px solid !important;
+  border-color: #5a5c63 #0b0c0e #0b0c0e #5a5c63 !important;
+  outline: 2px solid #000000 !important;
+  background: var(--panel) !important; color: #e8e8ea !important;
+}
+#gear:hover { background: #3d4046 !important; }
+#settings { background: var(--bg) !important; }
+.set-title { color: #ffffff !important; text-shadow: 2px 2px 0 #000 !important; font-family: var(--font-latin) !important; }
+.set-group h3 { color: var(--accent) !important; font-family: var(--font-latin) !important; }
+.set-row input, #chat-text {
+  border-radius: 0 !important;
+  background: #1c1d22 !important;
+  border: 2px solid !important;
+  border-color: #0b0c0e #4a4c52 #4a4c52 #0b0c0e !important;   /* 输入框 = 凹下 ✓ */
+  color: #ffffff !important;
+  font-family: var(--font-latin) !important;
+}
+#chat {
+  border-radius: 0 !important;
+  border: 2px solid !important;
+  border-color: #5a5c63 #0b0c0e #0b0c0e #5a5c63 !important;
+  outline: 2px solid #000000 !important;
+  background: var(--panel) !important;
+}
+.chat-title { color: var(--accent) !important; font-family: var(--font-latin) !important; }
+.msg { border-radius: 0 !important; }
+
+/* ── 动效：MC 没有扫光 ✗；展开时标题做一次"按钮按下"的明暗反转 ✓ ──── */
+body.sweep #title .t-cn, body.sweep #title .t-en,
+body.sweep .panel:not(.collapsed) .panel-title,
+body.sweep .panel:not(.collapsed) .panel-note,
+body.sweep .panel:not(.collapsed) .k,
+body.sweep .panel:not(.collapsed) .card-head .mname,
+body.sweep .panel:not(.collapsed)::after,
+body.sweep .panel:not(.collapsed) .card::before,
+body.sweep .panel:not(.collapsed) .netcard::before,
+body.sweep .panel:not(.collapsed) .tcard::before {
+  animation: none !important;
+}
+@keyframes qynMcPress {
+  0%   { transform: translate(1px, 1px); filter: brightness(.86); }
+  100% { transform: translate(0, 0); filter: brightness(1); }
+}
+body.sweep .panel:not(.collapsed) .panel-title {
+  animation: qynMcPress .18s steps(2) 1 !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  body.sweep .panel:not(.collapsed) .panel-title { animation: none !important; }
+}
+
+/* 重排按钮：MC 凸起按钮（上左亮边 / 下右暗边 ✓ 2026-11-09 移到对话条右边）*/
+#dock-replan {
+  border-radius: 0 !important;
+  border: 2px solid !important;
+  border-color: #5a5c63 #0b0c0e #0b0c0e #5a5c63 !important;
+  outline: 2px solid #000000 !important;
+  background: var(--panel) !important;
+  color: #e8e8ea !important;
+  font-family: var(--font-latin) !important;
+  font-weight: normal !important;
+}
+#dock-replan:hover { background: #3d4046 !important; }
+#dock-replan.topdone { background: var(--warn) !important; color: #000 !important; border-color: #ffe0a0 #4a3408 #4a3408 #ffe0a0 !important; }
+#dock-replan.busy { color: var(--faint) !important; }
+#dock-replan.done { color: var(--ok) !important; }

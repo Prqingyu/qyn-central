@@ -1,0 +1,24 @@
+[Unit]
+Description=QYN 屏幕策略 —— 按课表开关屏幕（含输入唤醒豁免 / ESC 熄屏）
+Documentation=file:%h/qyn/agent/current/CENTRAL/HARDWARE/SCREEN-POLICY.md
+# 需要会话（graphical-session）与屏幕壳先起来；本单元只操作会话 D-Bus，不碰 DRM 直接接口
+After=graphical-session.target qyn-screen.service
+Wants=graphical-session.target qyn-screen.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/qyn/hw
+# 用户单元的 %t = /run/user/<uid>，脚本据此拼出会话 D-Bus 地址（SSH 里也能跑）
+Environment=XDG_RUNTIME_DIR=%t
+Environment=QYN_REPO_ROOT=%h/qyn/agent/current
+# 日志：单元已把 stdout 追加到 screen-policy.log ⇒ 脚本别再自己写一遍（否则每行两份）
+Environment=QYN_LOG_TO_FILE=0
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 %h/qyn/agent/current/CENTRAL/HARDWARE/qyn-screen-policy.py --serve
+Restart=always
+RestartSec=5
+StandardOutput=append:%h/qyn/logs/screen-policy.log
+StandardError=append:%h/qyn/logs/screen-policy.log
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,30 @@
+[Unit]
+Description=QYN Agent 对话界面（DSH Web UI，本机回环）
+Documentation=file:%h/qyn/agent/current/CENTRAL/dsh/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# ★ 工作目录用**稳定的父目录**，不要用 current（它是软链，DSH 会解析成 releases/<ts>
+#   ⇒ 每发一次版就多一个工作区，实测攒了 10 个）。插件找内核用 QYN_REPO_ROOT。
+WorkingDirectory=%h/qyn/agent
+Environment=DSH_HOME=%h/qyn/.dsh
+Environment=QYN_DSH_HOME=%h/qyn/.dsh
+Environment=QYN_REPO_ROOT=%h/qyn/agent/current
+Environment=QYN_DSH_CLI=%h/qyn/agent/cli/node_modules/.bin/dsh
+# PATH 里的 %h/qyn/agent/bin 是手机通道命令入口（clawbot）—— 少它，界面对话里调不动手机通道
+Environment=PATH=%h/qyn/agent/bin:%h/qyn/agent/node/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-%h/qyn/agent/agent.env
+# ★ 只能绑回环：DSH 拒绝 --host 0.0.0.0（原话：would expose remote code execution
+#   to the network）。远程访问走 SSH 端口转发（标准做法，不暴露任何东西）：
+#     ssh -N -L 8799:127.0.0.1:8799 qyn-central
+#   然后本地浏览器开 http://127.0.0.1:8799/?token=…（token 在 logs/web.log 里）
+ExecStart=/usr/bin/python3 -u %h/qyn/agent/current/AGENT/dsh/rehearsal/webui.py --host 127.0.0.1 --port 8799 --home %h/qyn/.dsh
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:%h/qyn/agent/logs/web.log
+StandardError=append:%h/qyn/agent/logs/web.log
+
+[Install]
+WantedBy=default.target

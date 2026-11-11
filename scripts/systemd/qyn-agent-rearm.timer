@@ -1,0 +1,13 @@
+[Unit]
+Description=QYN 到点唤醒守卫 —— 每 30 分钟检查一次链条还在不在
+Documentation=file:%h/qyn/agent/current/CENTRAL/dsh/README.md
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=30min
+AccuracySec=1min
+Persistent=true
+Unit=qyn-agent-rearm.service
+
+[Install]
+WantedBy=timers.target
